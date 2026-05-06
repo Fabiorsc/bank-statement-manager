@@ -2,11 +2,12 @@ import sys
 from PySide6.QtWidgets import (
     QApplication, QHBoxLayout, QSizePolicy, QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
 )
+from excel.excel_reader import Excel_reader
 
 class UI_import(QWidget):
     def __init__(self,id_conta, apelido, banco, agencia, conta):
         super().__init__()
-
+        self.excel_file = ""
         self.setWindowTitle("Importar Dados")
 
         self.lbl_apelido = QLabel(f"<b>{apelido}</b>")
@@ -59,10 +60,12 @@ class UI_import(QWidget):
         )
 
         if arquivo:
+            self.excel_file=arquivo
             self.label.setText(arquivo)
 
-    def import_excel():
-        pass
+    def import_excel(self):
+        excel = Excel_reader(self.excel_file)
+        
 
     @classmethod
     def load(cls,id_conta, apelido, banco, agencia, conta):
