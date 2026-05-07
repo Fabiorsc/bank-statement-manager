@@ -10,7 +10,7 @@ class Excel_reader():
 
         h_row = self.detect_header(ws)
         print(h_row)
-        ws.close
+        # ws.close
 
     def detect_header(self, ws)-> int:
         scores = []
