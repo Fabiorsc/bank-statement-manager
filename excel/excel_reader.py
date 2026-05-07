@@ -1,28 +1,31 @@
 from openpyxl import load_workbook
+import re
+import unicodedata
+
+class ExcelReader():
+    def __init__(self):
+        pass
 
 
-class Excel_reader():
-    def __init__(self, excel_path: str):
-        # self.path = excel_path
-
+    def load(self, excel_path: str):
         wb = load_workbook(excel_path, data_only=True)
         ws = wb.active
 
         h_row = self.detect_header(ws)
         print(h_row)
-        # ws.close
+        wb.close()
 
     def detect_header(self, ws)-> int:
         scores = []
 
         for i, row in enumerate(ws.iter_rows(values_only=True)):
-            scores.append(self.analyze_row(row))
+            scores.append(self._analyze_row(row))
 
         header_row = max(range(len(scores)), key=lambda i: scores[i])
-        return header_row
+        return header_row + 1
 
 
-    def analyze_row(self, row):
+    def _analyze_row(self, row):
         total = len(row)
 
         qtd_strings = sum(isinstance(c, str) for c in row if c is not None)
@@ -33,15 +36,7 @@ class Excel_reader():
         number_ratio = qtd_numbers / total if total else 0
         completeness = filled / total if total else 0
 
-        keywords = ["valor", "credito", "debito", "saldo", "descricao", "historico"]
-
-        keyword_hits = 0
-        for c in row:
-            if isinstance(c, str):
-                for k in keywords:
-                    if k in c.lower():
-                        keyword_hits += 1
-                        break
+        keyword_hits = self._keywords_score(row)
 
         score = (
             text_ratio * 2.0
@@ -51,6 +46,37 @@ class Excel_reader():
         )
 
         return score
+
+    def _keywords_score(self,row)-> int:
+        keywords = {"valor", "credito", "debito", "saldo", "descricao", "historico", "data", "lancamento", "saldo", "movimento"}
+
+        keyword_hits = 0
+
+        # Percorre cada célula da linha.
+        for c in row:
+            # Verifica se é uma string.
+            if isinstance(c, str):
+
+                normalized = self._normalize_text(c)
+                # Usa regex para extrair palavras do texto e "SET" elimina duplicidades. (obs: talvez não precisasse disso mas evita coisas estranhas como "valor valor valor")
+                words = set(re.findall(r"\w+", normalized))
+
+                # Verifica se alguma das palavras da célula (words) existe na lista (keywords).
+                if keywords.intersection(words):
+                    keyword_hits += 1
+        return keyword_hits
+    
+    # recebe um texto e retorna o mesmo texto sem acento em minúsculo.
+    # Exemplo: recebe "CRÉDITO(r$)", retorna "credito(r$)"
+    def _normalize_text(self,text):
+        # Separa letra de acento: "crédito" vira "cre´dito".
+        text = unicodedata.normalize("NFKD", text)
+        # Remove os acentos do texto: "cre´dito" vira "credito".
+        text = "".join(c for c in text if not unicodedata.combining(c))
+        return text.lower()
+
+
+
 
 
 

@@ -10,7 +10,7 @@ from database.tables.conta import listar_contas
 from ui.ui_import import UI_import
 from ui.components.ui_account_item import UI_AccountItem
 from ui.ui_account_manager import UI_account_manager
-
+from ui.ui_account_layout import UI_account_layout
 
 class UI_main(QMainWindow):
     def __init__(self):
@@ -75,6 +75,8 @@ class UI_main(QMainWindow):
         print(f"Importar -> {id} / {banco} / {ag} / {conta}")
 
     def detalhes(self, id, banco, ag, conta, apelido):
+        UI_account_layout.load(id)
+
         print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
 
     def inserir_conta(self):

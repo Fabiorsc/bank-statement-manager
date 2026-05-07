@@ -4,17 +4,19 @@ def criar_tabelas():
     conn = get_connection()
     cursor = conn.cursor()
 
+    # CRIA TABELA CONTAS
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS contas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         banco TEXT NOT NULL,
         agencia TEXT,
         conta TEXT,
-        apelido TEXT
+        apelido TEXT,
+        data_criacao TEXT DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
-    # Tabela transacoes
+    # CRIA TABELA TRANSAÇÕES
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +26,24 @@ def criar_tabelas():
         valor REAL NOT NULL,
         categoria TEXT,
         observacao TEXT,
+        data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conta_id) REFERENCES contas(id)
+    )
+    """)
+
+    # CRIA TABELA CONTA_LAYOUT
+    cursor.execute("""
+    CREATE TABLE conta_layout (
+        id INTEGER PRIMARY KEY,
+        conta_id INTEGER NOT NULL,
+        layout_tipo TEXT NOT NULL,
+        linha_header INTEGER NOT NULL,
+        col_data INTEGER,
+        col_descricao INTEGER,
+        col_valor INTEGER,
+        col_credito INTEGER,
+        col_debito INTEGER,
+        col_indicador INTEGER,
         data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (conta_id) REFERENCES contas(id)
     )

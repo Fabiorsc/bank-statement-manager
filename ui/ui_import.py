@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import (
     QApplication, QHBoxLayout, QSizePolicy, QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
 )
-from excel.excel_reader import Excel_reader
+from excel.excel_reader import ExcelReader
 
 class UI_import(QWidget):
     def __init__(self,id_conta, apelido, banco, agencia, conta):
@@ -64,7 +64,8 @@ class UI_import(QWidget):
             self.label.setText(arquivo)
 
     def import_excel(self):
-        excel = Excel_reader(self.excel_file)
+        excel = ExcelReader()
+        excel.load(self.excel_file)
         
 
     @classmethod
