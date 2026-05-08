@@ -1,5 +1,5 @@
 import sys
-
+from database.repositories import RepositoryAccountLayout
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -23,16 +23,35 @@ class UI_account_layout(QWidget):
     def __init__(self, conta_id):
         super().__init__()
 
+        layout_tipo=""
+        linha_header=""
+        col_data=""
+        col_descricao=""
+        col_valor=""
+        col_credito=""
+        col_debito=""
+        col_indicador=""
+        
         self.conta_id = conta_id
+
+        layout=RepositoryAccountLayout.get_conta_layout(conta_id)
+        if layout:
+            #  _, layout_tipo, linha_header, col_data, col_descricao, col_valor, col_credito, col_debito, col_indicador=layout
+            layout_tipo = layout["layout_tipo"]
+            linha_header = layout["linha_header"]
+            col_data = layout["col_data"]
+            col_descricao = layout["col_descricao"]
+            col_valor = layout["col_valor"]
+            col_credito = layout["col_credito"]
+            col_debito = layout["col_debito"]
+            col_indicador = layout["col_indicador"]
 
         self.setWindowTitle("Configuração de Layout")
 
-        # =========================
         # CAMPOS
-        # =========================
-
-        self.txt_conta_id = QLineEdit(str(conta_id))
-        self.txt_conta_id.setReadOnly(True)
+        # self.txt_conta_id = QLineEdit(str(conta_id))
+        # self.txt_conta_id.setReadOnly(True)
+        # self.txt_conta_id=conta_id
 
         self.cmb_layout_tipo = QComboBox()
         self.cmb_layout_tipo.addItems([
@@ -40,26 +59,25 @@ class UI_account_layout(QWidget):
             self.LAYOUT_CRED_DEB,
             self.LAYOUT_VALOR_IND
         ])
+        # Define valor selecionado
+        self.cmb_layout_tipo.setCurrentText(layout_tipo)
 
-        self.txt_linha_header = QLineEdit()
+        self.txt_linha_header = QLineEdit(str(linha_header))
 
-        self.txt_col_data = QLineEdit()
-        self.txt_col_descricao = QLineEdit()
+        self.txt_col_data = QLineEdit(col_data)
+        self.txt_col_descricao = QLineEdit(col_descricao)
 
-        self.txt_col_valor = QLineEdit()
+        self.txt_col_valor = QLineEdit(col_valor)
 
-        self.txt_col_credito = QLineEdit()
-        self.txt_col_debito = QLineEdit()
+        self.txt_col_credito = QLineEdit(col_credito)
+        self.txt_col_debito = QLineEdit(col_debito)
 
-        self.txt_col_indicador = QLineEdit()
+        self.txt_col_indicador = QLineEdit(col_indicador)
 
-        # =========================
         # FORM
-        # =========================
-
         form = QFormLayout()
 
-        form.addRow("Conta ID:", self.txt_conta_id)
+        # form.addRow("Conta ID:", self.txt_conta_id)
         form.addRow("Layout Tipo:", self.cmb_layout_tipo)
 
         form.addRow("Linha Header:", self.txt_linha_header)
@@ -74,10 +92,7 @@ class UI_account_layout(QWidget):
 
         form.addRow("Coluna Indicador:", self.txt_col_indicador)
 
-        # =========================
         # BOTÕES
-        # =========================
-
         self.btn_salvar = QPushButton("Salvar / Atualizar")
         self.btn_cancelar = QPushButton("Cancelar")
 
@@ -89,10 +104,7 @@ class UI_account_layout(QWidget):
         layout_botoes.addWidget(self.btn_cancelar)
         layout_botoes.addWidget(self.btn_salvar)
 
-        # =========================
         # LAYOUT PRINCIPAL
-        # =========================
-
         layout_principal = QVBoxLayout()
 
         layout_principal.addLayout(form)
@@ -101,10 +113,7 @@ class UI_account_layout(QWidget):
 
         self.setLayout(layout_principal)
 
-        # =========================
         # EVENTOS
-        # =========================
-
         self.cmb_layout_tipo.currentTextChanged.connect(
             self.update_fields
         )
@@ -113,8 +122,6 @@ class UI_account_layout(QWidget):
 
     # ==========================================================
     # UPDATE FIELDS
-    # ==========================================================
-
     def update_fields(self):
 
         layout = self.cmb_layout_tipo.currentText()
@@ -158,8 +165,6 @@ class UI_account_layout(QWidget):
 
     # ==========================================================
     # ENABLE ALL
-    # ==========================================================
-
     def enable_all(self):
 
         self.txt_col_valor.setEnabled(True)
@@ -171,8 +176,6 @@ class UI_account_layout(QWidget):
 
     # ==========================================================
     # VALIDAR
-    # ==========================================================
-
     def validar(self):
 
         if not self.txt_linha_header.text().strip():
@@ -186,19 +189,13 @@ class UI_account_layout(QWidget):
 
         layout = self.cmb_layout_tipo.currentText()
 
-        # ==========================================
         # VALOR ÚNICO
-        # ==========================================
-
         if layout == self.LAYOUT_VALOR_UNICO:
 
             if not self.txt_col_valor.text().strip():
                 return "Coluna Valor é obrigatório."
 
-        # ==========================================
         # CRÉDITO / DÉBITO
-        # ==========================================
-
         elif layout == self.LAYOUT_CRED_DEB:
 
             if not self.txt_col_credito.text().strip():
@@ -207,10 +204,7 @@ class UI_account_layout(QWidget):
             if not self.txt_col_debito.text().strip():
                 return "Coluna Débito é obrigatório."
 
-        # ==========================================
         # VALOR + INDICADOR
-        # ==========================================
-
         elif layout == self.LAYOUT_VALOR_IND:
 
             if not self.txt_col_valor.text().strip():
@@ -223,8 +217,6 @@ class UI_account_layout(QWidget):
 
     # ==========================================================
     # SALVAR
-    # ==========================================================
-
     def salvar(self):
 
         erro = self.validar()
@@ -236,6 +228,18 @@ class UI_account_layout(QWidget):
                 erro
             )
             return
+
+        RepositoryAccountLayout.inserir_conta_layout(
+            self.conta_id,
+            self.cmb_layout_tipo.currentText(),
+            self.txt_linha_header.text(),
+            self.txt_col_data.text(),
+            self.txt_col_descricao.text(),
+            self.txt_col_valor.text(),
+            self.txt_col_credito.text(),
+            self.txt_col_debito.text(),
+            self.txt_col_indicador.text(),
+        )
 
         dados = {
             "conta_id": self.conta_id,
@@ -265,15 +269,11 @@ class UI_account_layout(QWidget):
 
     # ==========================================================
     # CANCELAR
-    # ==========================================================
-
     def cancelar(self):
         self.close()
 
     # ==========================================================
     # LOAD
-    # ==========================================================
-
     @classmethod
     def load(cls, conta_id):
 

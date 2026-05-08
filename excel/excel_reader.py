@@ -1,6 +1,7 @@
 from openpyxl import load_workbook
 import re
 import unicodedata
+from excel.excel_loader import ExcelLoader
 
 class ExcelReader():
     def __init__(self):
@@ -8,7 +9,10 @@ class ExcelReader():
 
 
     def load(self, excel_path: str):
-        wb = load_workbook(excel_path, data_only=True)
+        excel = ExcelLoader()
+        wb=excel.load(excel_path)
+
+        # wb = load_workbook(excel_path, data_only=True)
         ws = wb.active
 
         h_row = self.detect_header(ws)

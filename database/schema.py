@@ -33,7 +33,7 @@ def criar_tabelas():
 
     # CRIA TABELA CONTA_LAYOUT
     cursor.execute("""
-    CREATE TABLE conta_layout (
+    CREATE TABLE IF NOT EXISTS conta_layout (
         id INTEGER PRIMARY KEY,
         conta_id INTEGER NOT NULL,
         layout_tipo TEXT NOT NULL,

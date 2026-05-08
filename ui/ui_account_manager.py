@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 from ui.components.ui_account_crud_list import UI_AccountCrudList
-from database.tables.conta import inserir_conta, listar_contas
+from database.repositories import RepositoryAccount
 
 
 class UI_account_manager(QMainWindow):
@@ -69,7 +69,7 @@ class UI_account_manager(QMainWindow):
             if widget:
                 widget.setParent(None)
 
-        contas = listar_contas()
+        contas = RepositoryAccount.listar_contas()
 
         for id_conta, banco, agencia, conta, apelido in contas:
             item = UI_AccountCrudList(id_conta, apelido, banco, agencia, conta)
@@ -94,8 +94,8 @@ class UI_account_manager(QMainWindow):
         if not apelido or not banco:
             print("Apelido e Banco são obrigatórios")
             return
-
-        inserir_conta(banco, agencia, conta, apelido)
+        
+        RepositoryAccount.inserir_conta(banco, agencia, conta, apelido)
 
         self.limpar_inputs()
         self.carregar_contas()

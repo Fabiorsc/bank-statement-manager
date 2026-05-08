@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from database.tables.conta import listar_contas
+from database.repositories import RepositoryAccount
 from ui.ui_import import UI_import
 from ui.components.ui_account_item import UI_AccountItem
 from ui.ui_account_manager import UI_account_manager
@@ -45,7 +45,7 @@ class UI_main(QMainWindow):
         self.layout_contas.setContentsMargins(0, 0, 0, 0)
 
 # ---------- CRIA ITENS ----------
-        contas = listar_contas()
+        contas = RepositoryAccount.listar_contas()
         for id_conta, banco, ag, conta, apelido in contas:
             item = UI_AccountItem(id_conta, apelido, banco, ag, conta)
 
