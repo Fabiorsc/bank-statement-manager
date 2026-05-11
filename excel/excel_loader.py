@@ -6,7 +6,13 @@ from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.workbook.workbook import Workbook as OpenPyxlWorkbook
 
-
+"""
+    Faz o carregamento do arquivo excel independente se é um XLS ou XLSX
+    e retorna um objeto openpyxl.workbook.
+    Motivo: A biblioteca "openpyxl" não lê arquivos antigos tipo xls, então quando é xls o arquivo é aberto pela biblioteca "xlrd"
+    e depois lida e copiada para um objeto openpyxl.sheet e retornado o objeto (virtual, pois não é criado um arquivo físico).
+    OBSERVAÇÃO: está copia é limitada e contém apenas texto, ignorando imagens, formatações, etc. mas serve para extrair os dados do arquivo xls. 
+"""
 class ExcelLoader:
 
     def load(self, path: str | Path) -> OpenPyxlWorkbook:

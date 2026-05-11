@@ -1,5 +1,6 @@
 import sys
 from database.repositories import RepositoryAccountLayout
+from domain.account_layout_type import AccountLayoutType
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -15,10 +16,6 @@ from PySide6.QtWidgets import (
 
 
 class UI_account_layout(QWidget):
-
-    LAYOUT_VALOR_UNICO = "valor único"
-    LAYOUT_CRED_DEB = "valor crédito + valor débito"
-    LAYOUT_VALOR_IND = "valor + indicador créd./déb."
 
     def __init__(self, conta_id):
         super().__init__()
@@ -55,9 +52,9 @@ class UI_account_layout(QWidget):
 
         self.cmb_layout_tipo = QComboBox()
         self.cmb_layout_tipo.addItems([
-            self.LAYOUT_VALOR_UNICO,
-            self.LAYOUT_CRED_DEB,
-            self.LAYOUT_VALOR_IND
+            AccountLayoutType.LAYOUT_VALOR_UNICO.value,
+            AccountLayoutType.LAYOUT_CRED_DEB.value,
+            AccountLayoutType.LAYOUT_VALOR_IND.value
         ])
         # Define valor selecionado
         self.cmb_layout_tipo.setCurrentText(layout_tipo)
@@ -129,7 +126,7 @@ class UI_account_layout(QWidget):
         # limpa obrigatoriedade visual
         self.enable_all()
 
-        if layout == self.LAYOUT_VALOR_UNICO:
+        if layout == AccountLayoutType.LAYOUT_VALOR_UNICO.value:
 
             self.txt_col_valor.setEnabled(True)
 
@@ -141,7 +138,7 @@ class UI_account_layout(QWidget):
             self.txt_col_debito.clear()
             self.txt_col_indicador.clear()
 
-        elif layout == self.LAYOUT_CRED_DEB:
+        elif layout == AccountLayoutType.LAYOUT_CRED_DEB.value:
 
             self.txt_col_credito.setEnabled(True)
             self.txt_col_debito.setEnabled(True)
@@ -152,7 +149,7 @@ class UI_account_layout(QWidget):
             self.txt_col_valor.clear()
             self.txt_col_indicador.clear()
 
-        elif layout == self.LAYOUT_VALOR_IND:
+        elif layout == AccountLayoutType.LAYOUT_VALOR_IND.value:
 
             self.txt_col_valor.setEnabled(True)
             self.txt_col_indicador.setEnabled(True)
@@ -190,13 +187,13 @@ class UI_account_layout(QWidget):
         layout = self.cmb_layout_tipo.currentText()
 
         # VALOR ÚNICO
-        if layout == self.LAYOUT_VALOR_UNICO:
+        if layout == AccountLayoutType.LAYOUT_VALOR_UNICO.value:
 
             if not self.txt_col_valor.text().strip():
                 return "Coluna Valor é obrigatório."
 
         # CRÉDITO / DÉBITO
-        elif layout == self.LAYOUT_CRED_DEB:
+        elif layout == AccountLayoutType.LAYOUT_CRED_DEB.value:
 
             if not self.txt_col_credito.text().strip():
                 return "Coluna Crédito é obrigatório."
@@ -205,7 +202,7 @@ class UI_account_layout(QWidget):
                 return "Coluna Débito é obrigatório."
 
         # VALOR + INDICADOR
-        elif layout == self.LAYOUT_VALOR_IND:
+        elif layout == AccountLayoutType.LAYOUT_VALOR_IND.value:
 
             if not self.txt_col_valor.text().strip():
                 return "Coluna Valor é obrigatório."

@@ -1,8 +1,11 @@
 import sys
-from PySide6.QtWidgets import (
-    QApplication, QHBoxLayout, QSizePolicy, QWidget, QPushButton, QLabel, QVBoxLayout, QFileDialog
-)
 from excel.excel_reader import ExcelReader
+from database.repositories import RepositoryAccountLayout
+from PySide6.QtWidgets import (
+    QApplication, QHBoxLayout, QSizePolicy,  QVBoxLayout,
+    QWidget, QPushButton, QLabel, QMessageBox, QFileDialog
+)
+
 
 class UI_import(QWidget):
     def __init__(self,id_conta, apelido, banco, agencia, conta):
@@ -10,6 +13,7 @@ class UI_import(QWidget):
         self.excel_file = ""
         self.setWindowTitle("Importar Dados")
 
+        self.conta_id = id_conta
         self.lbl_apelido = QLabel(f"<b>{apelido}</b>")
         self.lbl_apelido.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.lbl_banco = QLabel(f"<b>Banco:</b> {banco}")
@@ -64,9 +68,14 @@ class UI_import(QWidget):
             self.label.setText(arquivo)
 
     def import_excel(self):
-        excel = ExcelReader()
-        excel.load(self.excel_file)
-        
+        if RepositoryAccountLayout.exists_conta_layout(self.conta_id):
+            excel = ExcelReader()
+            if self.excel_file:
+                excel.load(self.conta_id, self.excel_file)
+            else:
+                QMessageBox.information(self, "Erro", "Selecione um arquivo para ser importado!")
+        else:
+            QMessageBox.information(self, "Erro", "Não existe configuração de layout para esta conta.")
 
     @classmethod
     def load(cls,id_conta, apelido, banco, agencia, conta):

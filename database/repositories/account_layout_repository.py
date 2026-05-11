@@ -18,9 +18,19 @@ class AccountLayoutRepository(BaseRepository):
     def get_conta_layout(self, conta_id):
         return self._fetch_one("""
         SELECT * FROM conta_layout WHERE conta_id = ?
-                       """, (conta_id,)
-                       )
-        
+        """, (conta_id,)
+        )
+    
+    def exists_conta_layout(self, conta_id):
+        result = self._fetch_one("""
+        SELECT EXISTS(
+            SELECT 1
+            FROM conta_layout
+            WHERE conta_id = ?
+        )
+        """, (conta_id,)
+        )
+        return bool(result[0])
 
 
 

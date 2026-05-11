@@ -1,5 +1,5 @@
 from database.connection import get_connection
-
+import sqlite3
 
 class BaseRepository:
 
@@ -68,3 +68,14 @@ class BaseRepository:
 
         # Retorna resultado
         return result
+    
+    def _print_table(self, table_name):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(f"SELECT * FROM {table_name}")
+
+        for tabela in cursor.fetchall():
+            print(dict(tabela))
+
+        conn.close()
