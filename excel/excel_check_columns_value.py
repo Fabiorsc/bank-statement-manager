@@ -1,6 +1,7 @@
 
 from datetime import datetime, date
-import decimal
+from decimal import ROUND_HALF_UP, Decimal
+from enum import Enum
 import re
 
 from domain.account_layout_type import AccountLayoutType
@@ -21,6 +22,11 @@ MESES = {
     "dezembro": 12
 }
 
+class DateFormat(Enum):
+    DD_MM_YYYY = 1
+    DD_MM_YY = 2
+    MM_DD_YYYY = 3
+    MM_DD_YY = 4
 # Esta classe Além de verificar se o valor de cada coluna está correto, tb deve montar uma lista com os valores corretos
 # convertendo date-string para datetime, por exemplo; Int e Floats para Decimal, ...
 #completar o exemplo com a data e seguir para os outros tipos!
@@ -34,7 +40,7 @@ class CheckColumnsValues():
         self.list_col_debito = {}
         self.list_col_indicador = {}
 
-    def check_columns_values(self, ws, layout):
+    def check_n_extract_columns(self, ws, layout):
         layout_tipo = layout["layout_tipo"]
         linha_header = layout["linha_header"]
         col_data = layout["col_data"]
@@ -44,43 +50,72 @@ class CheckColumnsValues():
         col_debito = layout["col_debito"]
         col_indicador = layout["col_indicador"]
 
-        # num_data = 
-        # num_lin = linha_header + 1
-        self.check_col_date(ws, self.excel_column_to_number(col_data), linha_header + 1)
-        self.check_col_texto(ws, self.excel_column_to_number(col_descricao), linha_header + 1)
+        table = []
+
+        verificado,self.list_col_data = self.check_col_date(ws, self.excel_column_to_number(col_data), linha_header + 1)
+        verificado, self.list_col_descricao = self.check_col_texto(ws, self.excel_column_to_number(col_descricao), linha_header + 1)
 
         if layout_tipo == AccountLayoutType.VALOR_UNICO.value:
-            self.check_col_valor(ws, self.excel_column_to_number(col_valor),linha_header + 1)
+            verificado, self.list_col_valor = self.check_col_valor(ws, self.excel_column_to_number(col_valor),linha_header + 1)
+            for ch in self.list_col_data:
+                row = {
+                    'date': self.list_col_data.get(ch),
+                    'description': self.list_col_descricao.get(ch),
+                    'value': self.list_col_valor.get(ch)
+                }
+                table.append(row)
 
         elif layout_tipo == AccountLayoutType.VALOR_IND.value:
-            self.check_col_valor(ws, self.excel_column_to_number(col_valor),linha_header + 1)
-            self.check_col_texto(ws, self.excel_column_to_number(col_indicador),linha_header + 1)
+            verificado, self.list_col_valor = self.check_col_valor(ws, self.excel_column_to_number(col_valor),linha_header + 1)
+            verificado, self.list_col_indicador = self.check_col_texto(ws, self.excel_column_to_number(col_indicador),linha_header + 1)
+            for ch in self.list_col_data:
+                value = self.list_col_valor.get(ch)
+                indic = self.list_col_indicador.get(ch).upper()
+                if indic == "D":
+                    value = value * -1
+                elif indic == "C":
+                    value = value
+                row = {
+                    'date': self.list_col_data.get(ch),
+                    'description': self.list_col_descricao.get(ch),
+                    'value': value
+                }
+                table.append(row)
 
         elif layout_tipo == AccountLayoutType.CRED_DEB.value:
-            self.check_col_valor(ws, self.excel_column_to_number(col_credito), linha_header + 1)
-            self.check_col_valor(ws, self.excel_column_to_number(col_debito), linha_header + 1)
+            verificado, self.list_col_credito = self.check_col_valor(ws, self.excel_column_to_number(col_credito), linha_header + 1)
+            verificado, self.list_col_debito = self.check_col_valor(ws, self.excel_column_to_number(col_debito), linha_header + 1)
+            for ch in self.list_col_data:
+                if self.list_col_credito.get(ch) != 0:
+                    value = self.list_col_credito.get(ch)
+                elif self.list_col_debito.get(ch) != 0:
+                    value = self.list_col_debito.get(ch) * -1
+                row = {
+                    'date': self.list_col_data.get(ch),
+                    'description': self.list_col_descricao.get(ch),
+                    'value': value
+                }
+                table.append(row)
+
+        return table
+
 
     def check_col_date(self,ws, col_number, line_number):
         ret = {}
         coluna = self.get_col(ws, col_number, line_number)
         validado = True
+        short_data_type = self.check_short_date(coluna)
         for ch, value in enumerate(coluna):
-            new_date = self.convert_to_datetime(value)
-            if new_date:
-                # CADASTRA EM UMA LISTA (linha + valor correto)
-                ...
-                ret[ch]=new_date
+            new_date = self.parse_date(value,short_data_type)
+            if new_date is None and isinstance(value, str) and value == "":
+                ret[ch] = ""
+            if new_date is not None:
+                ret[ch] = new_date
             else:
-                print(f"Erro: valor {str(value)} não é uma data!")
+                print(f"Erro: Na linha {ch}, o valor '{str(value)}' não é uma data!")
                 validado = False
-                break
-
-            # if not isinstance(value, (datetime, date)):
-            #     print(f"Erro: valor {str(value)} não é uma data!")
-            #     validado = False
-            #     break
-            
-        return validado
+                break           
+        return (validado, ret)
     
     def check_col_texto(self, ws, col_number, line_number):
         ret = {}
@@ -91,55 +126,188 @@ class CheckColumnsValues():
             if isinstance(value, str):
                 ret[ch]=value
             else:
-                print(f"Erro: valor {str(value)} não é um texto!")
+                print(f"Erro: Na linha {ch}, o valor '{str(value)}' não é um texto!")
                 validado = False
                 break
-        return validado
+        return (validado, ret)
     
     def check_col_valor(self, ws, col_number, line_number):
         ret = {}
         coluna = self.get_col(ws, col_number, line_number)
         validado = True
         for ch, value in enumerate(coluna):
-            new_money = self.convert_to_money(value)
-            if new_money:
+            new_money = self.parse_money(value)
+            if new_money is not None:
                 ret[ch]=new_money
-
             else:
-                print(f"Erro: valor {str(value)} não é um texto!")
+                print(f"Erro: Na linha {ch}, o valor '{str(value)}' não é um tipo moeda!")
                 validado = False
                 break
-        return validado
+        return (validado, ret)
+
+
+    def check_short_date(self, coluna):
+        ano_type = None
+        # pattern = r'^(\d{2})(.)(\d{2})\2(\d{2}|\d{4})$'
+        for ch, value in enumerate(coluna):
+            # match = re.match(pattern, value)
+            # if match:
+            #     part1 = match.group(1)  # dia
+            #     # part2 = match.group(2)  # separador
+            #     part2 = match.group(3)  # mes
+            #     ano = match.group(4)  # ano
+
+            part1, part2, ano, _ = self.extract_date_parts(value)
+            if part1 is None:
+                return None
+            
+            # ano_type = len(ano) * "y"
+
+            if part1 > 12 and len(ano) == 2: 
+                return DateFormat.DD_MM_YY
+            elif part1 > 12 and len(ano) == 4:
+                return DateFormat.DD_MM_YYYY
+            elif part2 > 12 and len(ano) == 2:
+                return DateFormat.MM_DD_YY
+            elif part2 > 12 and len(ano) == 4:
+                return DateFormat.MM_DD_YYYY
+        return None
+    
+    def extract_date_parts(self, dat_str):
+        pattern = r'^(\d{2})(.)(\d{2})\2(\d{2}|\d{4})$'
+        match = re.match(pattern, dat_str)
+        if match:
+            return match.group(1), match.group(3), match.group(4), match.group(2)
+        return None, None, None, None
+
+
+    # def convert_to_money(self, value):
+    #     if isinstance(value, (int, float)):
+    #         return Decimal(value)
+    #     elif isinstance(value, str):
+    #         return self.parse_money(value)
+    #     return None
+    
+    # def convert_to_datetime(self, value):
+    #     if isinstance(value, (datetime, date)):
+    #         return value
+    #     elif isinstance(value, str):
+    #         return self.parse_date_in_full(value)
+    #     return None
+            
+
+    def parse_money(self, value):
+        # if isinstance(value, (int, float)):
+        #     return Decimal(value)
+        
+        # if not isinstance(value, str):
+        #     return None
+
+        if not isinstance(value, (str,int,float)):
+            return None
+        
+        # É melhor converter string para decimal do que float para decimal, e int não faz diferença, então converte tudo para string.
+        value = str(value)
+
+        # Remove espaços e coloca em maiusculo para facilitar tratamento e higienização da variável.
+        value = value.strip().upper()
+
+        if value == "": return Decimal('0.00') # retorno padrão = 2 casas decimais.
+
+        pattern = r'^(R\$)?\s?[+-]?[0-9,.]+$'
+        match = re.match(pattern, value)
+
+        # Verifica se condiz com uma mascara esérada de valor monetário.
+        if not match:
+            return None # Se não coincidir retorna None e gera erro.
+        
+        # Remove espaços e indicação monetária.
+        value = value.replace(' ', '')
+        value = value.replace('R$', '')
+
+        # Normaliza numero sem separador de milhar e separador de decimal = "."
+        decimal_sep = None 
+        # verifica separador de decimal na terceira posição da direita 
+        if len(value) >= 3 and value[-3] in '.,': 
+            decimal_sep = value[-3] 
+        
+        # remove todos separadores de milhar e decimal (, e .)
+        value = value.replace(",","").replace(".","") 
+        # Se existia separador de decimal, recoloca-o como ponto (.)
+        if decimal_sep:
+            value = value[:-2] + '.' + value[-2:]
+
+        # Força conversão para decimal com 2 casas.
+        return Decimal(str(value)).quantize(
+            Decimal('0.01'),
+            rounding=ROUND_HALF_UP
+        )
+
+        # return value
+
+    def parse_date(self, value, short_date_type):
+        ret = None
+        if isinstance(value, (datetime, date)):
+            return value
+        if isinstance(value, str):
+            value = value.strip()
+            if ret := self.parse_date_in_full(value):
+                return ret
+            if ret := self.parse_short_date(value, short_date_type):
+                return ret
+
+    def parse_short_date(self, value, short_date_type):
+        part1, part2, ano, _ = self.extract_date_parts(value)
+        match short_date_type:
+            case DateFormat.DD_MM_YY:
+                ano = self.normalize_year(ano)
+                return date(ano, part2, part1)
+            
+            case DateFormat.DD_MM_YYYY:
+                return date(ano, part2, part1)
+            
+            case DateFormat.MM_DD_YY:
+                ano = self.normalize_year(ano)
+                return date(ano, part1, part2)
+            
+            case DateFormat.MM_DD_YYYY:
+                return date(ano, part1, part2)
+
+    def parse_date_in_full(self, value):
+        # Verifica e converte data por extenso tipo "Quarta, 05 de Maio de 2010"
+        pattern = r'^\w+,?\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})$'
+        match = re.match(pattern, value.strip().lower())
+
+        if not match:
+            return None
+
+        dia = int(match.group(1))
+        mes_nome = match.group(2)
+        ano = int(match.group(3))
+
+        mes = MESES.get(mes_nome)
+
+        if not mes:
+            return None
+
+        return datetime(ano, mes, dia)
+
+    def normalize_year(self, ano):
+        CURRENT_YY = datetime.now().year % 100
+        def normalize_year(year):
+            if year >= 100:
+                return year
+
+            if year <= CURRENT_YY:
+                return 2000 + year
+            return 1900 + year
 
 
 
-        #     if isinstance(valor, (int,float)):
-        #         continue
-        #     elif self.is_money(valor):
-        #         continue
-        #     else:
-        #         print(f"Erro: valor {str(valor)} não é um número!")
-        #         validado = False
-        #         break
-        # return validado    
 
     def get_col(self, ws, col_number, line_number)-> tuple:
         return next(ws.iter_cols(min_col=col_number, max_col=col_number, min_row=line_number, values_only=True))
 
-
-    def convert_to_money(self, value):
-        if isinstance(value, (int, float)):
-            return decimal(value)
-        elif isinstance(value, str):
-            return self.parse_money(value)
-
-    def convert_to_datetime(self, value):
-        if isinstance(value, (datetime, date)):
-            return value
-        elif isinstance(value, str):
-            return self.parse_date_in_full(value)
-
-            
     def excel_column_to_number(self, value):
         # Já é número
         if isinstance(value, int):
@@ -160,64 +328,3 @@ class CheckColumnsValues():
             raise TypeError("Valor deve ser int ou str")
         
         return resultado
-    
-    # def is_money(self, value) -> bool:
-    #     if isinstance(value, (int,float)):
-
-
-    #     if not isinstance(value, str):
-    #         return False
-
-    #     pattern = r'^(R\$)?\s?[+-]?[0-9,.]+$'
-
-    #     return bool(re.fullmatch(pattern, value.strip()))
-    
-
-    def parse_money(self, value):
-        if not isinstance(value, str):
-            return None
-
-        value = value.strip().upper()
-
-        pattern = r'^(R\$)?\s?[+-]?[0-9,.]+$'
-        match = re.match(pattern, value)
-
-        if not match:
-            return None
-        
-        value = value.replace(' ', '')
-        value = value.replace('R$', '')
-
-        decimal_sep = None 
-        # verifica terceira posição da direita 
-        if len(value) >= 3 and value[-3] in '.,': 
-            decimal_sep = value[-3] 
-            
-        value.replace(",","").replace(".","") 
-        if decimal_sep:
-            value = value[:-2] + '.' + value[-2:]
-
-        return value
-
-
-    def parse_date_in_full(self, value):
-
-        if not isinstance(value, str):
-            return None
-
-        pattern = r'^\w+,?\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})$'
-        match = re.match(pattern, value.strip().lower())
-
-        if not match:
-            return None
-
-        dia = int(match.group(1))
-        mes_nome = match.group(2)
-        ano = int(match.group(3))
-
-        mes = MESES.get(mes_nome)
-
-        if not mes:
-            return None
-
-        return datetime(ano, mes, dia)
