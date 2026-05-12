@@ -1,5 +1,6 @@
 
 from datetime import datetime, date
+import decimal
 import re
 
 from domain.account_layout_type import AccountLayoutType
@@ -20,11 +21,18 @@ MESES = {
     "dezembro": 12
 }
 
-# Esta classe Além de verificar s eo valor de cada coluna es´ta correto, tb deve montar uma lista com os valores corretos
+# Esta classe Além de verificar se o valor de cada coluna está correto, tb deve montar uma lista com os valores corretos
 # convertendo date-string para datetime, por exemplo; Int e Floats para Decimal, ...
 #completar o exemplo com a data e seguir para os outros tipos!
 
 class CheckColumnsValues():
+    def __init__(self):
+        self.list_col_data = {}
+        self.list_col_descricao = {}
+        self.list_col_valor = {}
+        self.list_col_credito = {}
+        self.list_col_debito = {}
+        self.list_col_indicador = {}
 
     def check_columns_values(self, ws, layout):
         layout_tipo = layout["layout_tipo"]
@@ -53,13 +61,15 @@ class CheckColumnsValues():
             self.check_col_valor(ws, self.excel_column_to_number(col_debito), linha_header + 1)
 
     def check_col_date(self,ws, col_number, line_number):
+        ret = {}
         coluna = self.get_col(ws, col_number, line_number)
         validado = True
-        for value in coluna:
+        for ch, value in enumerate(coluna):
             new_date = self.convert_to_datetime(value)
             if new_date:
                 # CADASTRA EM UMA LISTA (linha + valor correto)
                 ...
+                ret[ch]=new_date
             else:
                 print(f"Erro: valor {str(value)} não é uma data!")
                 validado = False
@@ -69,34 +79,59 @@ class CheckColumnsValues():
             #     print(f"Erro: valor {str(value)} não é uma data!")
             #     validado = False
             #     break
+            
         return validado
     
     def check_col_texto(self, ws, col_number, line_number):
+        ret = {}
         coluna = self.get_col(ws, col_number, line_number)
         validado = True
-        for valor in coluna:
-            if not isinstance(valor, str):
-                print(f"Erro: valor {str(valor)} não é um texto!")
+        for ch, value in enumerate(coluna):
+            # new_money = self.convert_to_money(value)
+            if isinstance(value, str):
+                ret[ch]=value
+            else:
+                print(f"Erro: valor {str(value)} não é um texto!")
                 validado = False
                 break
         return validado
     
     def check_col_valor(self, ws, col_number, line_number):
+        ret = {}
         coluna = self.get_col(ws, col_number, line_number)
         validado = True
-        for valor in coluna:
-            if isinstance(valor, (int,float)):
-                continue
-            elif self.is_money(valor):
-                continue
+        for ch, value in enumerate(coluna):
+            new_money = self.convert_to_money(value)
+            if new_money:
+                ret[ch]=new_money
+
             else:
-                print(f"Erro: valor {str(valor)} não é um número!")
+                print(f"Erro: valor {str(value)} não é um texto!")
                 validado = False
                 break
-        return validado    
+        return validado
+
+
+
+        #     if isinstance(valor, (int,float)):
+        #         continue
+        #     elif self.is_money(valor):
+        #         continue
+        #     else:
+        #         print(f"Erro: valor {str(valor)} não é um número!")
+        #         validado = False
+        #         break
+        # return validado    
 
     def get_col(self, ws, col_number, line_number)-> tuple:
         return next(ws.iter_cols(min_col=col_number, max_col=col_number, min_row=line_number, values_only=True))
+
+
+    def convert_to_money(self, value):
+        if isinstance(value, (int, float)):
+            return decimal(value)
+        elif isinstance(value, str):
+            return self.parse_money(value)
 
     def convert_to_datetime(self, value):
         if isinstance(value, (datetime, date)):
@@ -126,15 +161,43 @@ class CheckColumnsValues():
         
         return resultado
     
-    def is_money(self, value) -> bool:
+    # def is_money(self, value) -> bool:
+    #     if isinstance(value, (int,float)):
 
+
+    #     if not isinstance(value, str):
+    #         return False
+
+    #     pattern = r'^(R\$)?\s?[+-]?[0-9,.]+$'
+
+    #     return bool(re.fullmatch(pattern, value.strip()))
+    
+
+    def parse_money(self, value):
         if not isinstance(value, str):
-            return False
+            return None
+
+        value = value.strip().upper()
 
         pattern = r'^(R\$)?\s?[+-]?[0-9,.]+$'
+        match = re.match(pattern, value)
 
-        return bool(re.fullmatch(pattern, value.strip()))
-    
+        if not match:
+            return None
+        
+        value = value.replace(' ', '')
+        value = value.replace('R$', '')
+
+        decimal_sep = None 
+        # verifica terceira posição da direita 
+        if len(value) >= 3 and value[-3] in '.,': 
+            decimal_sep = value[-3] 
+            
+        value.replace(",","").replace(".","") 
+        if decimal_sep:
+            value = value[:-2] + '.' + value[-2:]
+
+        return value
 
 
     def parse_date_in_full(self, value):
@@ -143,7 +206,6 @@ class CheckColumnsValues():
             return None
 
         pattern = r'^\w+,?\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})$'
-
         match = re.match(pattern, value.strip().lower())
 
         if not match:
