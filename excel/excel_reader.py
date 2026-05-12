@@ -36,6 +36,7 @@ class ExcelReader():
                 i_value = row["value"]
                 if "SALDO" in i_desc.upper():
                     #remover linha!
+                    ...
 
                 # if "TOTAL" in (i_date.upper(), i_desc, i_value) and "" in (i_date, i_desc, i_value):
             # TENHO QUE TIRAR O TOTAL ANTES DE CONVERTER POIS O TOTAL PODE ESTAR EM UMA COLUNA DATE OU MONY QUE VAI DAR ERRO AO CONVERTER E INVALIDAR A EXTRAÇÂO.
