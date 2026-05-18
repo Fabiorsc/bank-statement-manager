@@ -30,14 +30,21 @@ class ExcelReader():
             # Verifica os dados das colunas relevantes e traz uma tabela(lista de dict) com os dados convertidos e transformados para as colunas necesárias.
             table = clsCheckColumnsValues.check_n_extract_columns(ws, layout)
 
-            for row in table:
+            len_antes = len(table)
+            table = [x for x in table if "SALDO" not in x["description"].upper() ]
+            len_depois = len(table)
+
+            aux_table = table[:] # faz um acópia da lista para não alterar a lista enquanto pecorre a mesma.
+            for row in aux_table:
                 i_date = row["date"]
                 i_desc = row["description"]
                 i_value = row["value"]
-                if "SALDO" in i_desc.upper():
-                    #remover linha!
-                    ...
+                if "SALDO" == i_desc.strip().upper(): table.remove(row) # remove linha de SALDO
+                if "SALDO ANTERIOR" == i_desc.strip().upper(): table.remove(row) # remove linha de SALDO ANTERIOR
+                if "TOTAL" == i_desc.strip().upper(): table.remove(row) # Remove linha de TOTAL 
 
+            stop = 'para'
+            
                 # if "TOTAL" in (i_date.upper(), i_desc, i_value) and "" in (i_date, i_desc, i_value):
             # TENHO QUE TIRAR O TOTAL ANTES DE CONVERTER POIS O TOTAL PODE ESTAR EM UMA COLUNA DATE OU MONY QUE VAI DAR ERRO AO CONVERTER E INVALIDAR A EXTRAÇÂO.
 
