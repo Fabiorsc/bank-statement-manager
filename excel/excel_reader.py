@@ -20,7 +20,6 @@ class ExcelReader():
         # RepositoryAccountLayout._print_table("contas")
         excel = ExcelLoader()
         wb = excel.load(excel_path)
-
         ws = wb.active
 
 #---------------------------------------------
@@ -31,8 +30,8 @@ class ExcelReader():
             table = clsCheckColumnsValues.check_n_extract_columns(ws, layout)
 
             len_antes = len(table)
-            table = [x for x in table if "SALDO" not in x["description"].upper() ]
-            len_depois = len(table)
+            # table = [x for x in table if "SALDO" not in x["description"].upper() ]
+            
 
             aux_table = table[:] # faz um acópia da lista para não alterar a lista enquanto pecorre a mesma.
             for row in aux_table:
@@ -42,15 +41,20 @@ class ExcelReader():
                 if "SALDO" == i_desc.strip().upper(): table.remove(row) # remove linha de SALDO
                 if "SALDO ANTERIOR" == i_desc.strip().upper(): table.remove(row) # remove linha de SALDO ANTERIOR
                 if "TOTAL" == i_desc.strip().upper(): table.remove(row) # Remove linha de TOTAL 
-
-            stop = 'para'
+            len_depois = len(table)
             
-                # if "TOTAL" in (i_date.upper(), i_desc, i_value) and "" in (i_date, i_desc, i_value):
-            # TENHO QUE TIRAR O TOTAL ANTES DE CONVERTER POIS O TOTAL PODE ESTAR EM UMA COLUNA DATE OU MONY QUE VAI DAR ERRO AO CONVERTER E INVALIDAR A EXTRAÇÂO.
+            
+            stop = 'para'
+            return table
 
-        # SEPARAR EM UOUTRO METODO PARA SER CHAMADO PELA UI.
-        h_row = clsDetectHeader.detect_header(ws)
-        print(h_row)
+
+
+        # # SEPARAR EM UOUTRO METODO PARA SER CHAMADO PELA UI.
+        # h_row = clsDetectHeader.detect_header(ws)
+        # print(h_row)
+
+
         wb.close()
+
 
 

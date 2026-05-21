@@ -13,7 +13,7 @@ class AccountRepository(BaseRepository):
 
         # conn.commit()
         # conn.close()
-
+        return self.last_id
 
     def listar_contas(self):
         # conn = get_connection()

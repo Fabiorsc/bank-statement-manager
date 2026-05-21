@@ -75,7 +75,7 @@ class UI_main(QMainWindow):
         print(f"Importar -> {id} / {banco} / {ag} / {conta}")
 
     def detalhes(self, id, banco, ag, conta, apelido):
-        UI_account_layout.load(id)
+        UI_account_layout.load(id) #, banco, ag, conta, apelido)
 
         print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
 

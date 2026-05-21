@@ -16,14 +16,16 @@ def criar_tabelas():
     )
     """)
 
+    # cursor.execute("DROP TABLE transacoes")
     # CRIA TABELA TRANSAÇÕES
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         conta_id INTEGER NOT NULL,
+        import_id INTEGER NOT NULL,
         data TEXT NOT NULL,
         descricao TEXT,
-        valor REAL NOT NULL,
+        valor TEXT NOT NULL, 
         categoria TEXT,
         observacao TEXT,
         data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -44,6 +46,18 @@ def criar_tabelas():
         col_credito INTEGER,
         col_debito INTEGER,
         col_indicador INTEGER,
+        data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conta_id) REFERENCES contas(id)
+    )
+    """)
+
+    # cursor.execute("DROP TABLE import")
+    # CRIA TABELA IMPORT
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS import (
+        id INTEGER PRIMARY KEY,
+        conta_id INTEGER NOT NULL,
+        arquivo TEXT NOT NULL,
         data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (conta_id) REFERENCES contas(id)
     )

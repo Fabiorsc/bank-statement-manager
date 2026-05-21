@@ -2,9 +2,11 @@ from database.connection import get_connection
 import sqlite3
 
 class BaseRepository:
+    def __init__(self):
+        self.last_id = None
+        self.row_cont = None
 
     def _execute(self, query, params=()) -> None:
-
         # Abre conexão com banco
         conn = get_connection()
 
@@ -12,13 +14,13 @@ class BaseRepository:
         cursor = conn.cursor()
 
         # Executa query
-        cursor.execute(
-            query,
-            params
-        )
+        cursor.execute(query, params)
 
         # Confirma transação
         conn.commit()
+        
+        self.last_id = cursor.lastrowid
+        self.row_cont = cursor.rowcount
 
         # Fecha conexão
         conn.close()

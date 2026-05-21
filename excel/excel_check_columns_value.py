@@ -5,6 +5,7 @@ from enum import Enum
 import re
 
 from domain.account_layout_type import AccountLayoutType
+from excel.excel_service import datetime_from_excel
 
 
 MESES = {
@@ -27,6 +28,8 @@ class DateFormat(Enum):
     DD_MM_YY = 2
     MM_DD_YYYY = 3
     MM_DD_YY = 4
+    FLOAT = 5
+
 # Esta classe Além de verificar se o valor de cada coluna está correto, tb deve montar uma lista com os valores corretos
 # convertendo date-string para datetime, por exemplo; Int e Floats para Decimal, ...
 #completar o exemplo com a data e seguir para os outros tipos!
@@ -147,33 +150,45 @@ class CheckColumnsValues():
 
 
     def check_short_date(self, coluna):
-        ano_type = None
-        # pattern = r'^(\d{2})(.)(\d{2})\2(\d{2}|\d{4})$'
+        # Procura os valores de "coluna" até achar algum que consiga definir o formato da data.
+        # Achando o primeiro que defina o formta, retorna o formato encontrado.
+        # Baseado na suposição que todas as datas estão no mesmo formato.
+
+        count_float = 0
         for ch, value in enumerate(coluna):
-            # match = re.match(pattern, value)
-            # if match:
-            #     part1 = match.group(1)  # dia
-            #     # part2 = match.group(2)  # separador
-            #     part2 = match.group(3)  # mes
-            #     ano = match.group(4)  # ano
+        
+            # if isinstance(value,float):
+            #     # Percorre todos os itens de "coluna" e conta quantos floats existem.
+            #     count_float += 1
 
-            part1, part2, ano, _ = self.extract_date_parts(value)
-            if part1 is None:
-                return None
-            
-            # ano_type = len(ano) * "y"
+            # else: # Se for string...
+            if isinstance(value, str):
+                # Extrai as partes de uma data no tipo string.
+                part1, part2, ano, _ = self.extract_date_parts(value)
+                if part1 is None:
+                    return None
 
-            if part1 > 12 and len(ano) == 2: 
-                return DateFormat.DD_MM_YY
-            elif part1 > 12 and len(ano) == 4:
-                return DateFormat.DD_MM_YYYY
-            elif part2 > 12 and len(ano) == 2:
-                return DateFormat.MM_DD_YY
-            elif part2 > 12 and len(ano) == 4:
-                return DateFormat.MM_DD_YYYY
+                if part1 > 12 and len(ano) == 2: 
+                    return DateFormat.DD_MM_YY
+                elif part1 > 12 and len(ano) == 4:
+                    return DateFormat.DD_MM_YYYY
+                elif part2 > 12 and len(ano) == 2:
+                    return DateFormat.MM_DD_YY
+                elif part2 > 12 and len(ano) == 4:
+                    return DateFormat.MM_DD_YYYY
+            # count_nao_float += 1
+
+        # # Para garantir que não vai pegar um campo isolado por engano, 
+        # # calcula se a quantidade de float é de 80% e 100% dos valores da coluna.
+        # if 0.8 <= count_float / len(coluna) <= 1:
+        #     return DateFormat.FLOAT
+
         return None
     
     def extract_date_parts(self, dat_str):
+        # Extrai partes de uma data considernado NN-NN-NN ou NN-NN-NNNN, onde
+        # N = qualquer número e "-" = qualquer caractere.
+        # Onde 01-02-1900, parte1=01; parte2=02; parte3=1900 e parte4="-"
         pattern = r'^(\d{2})(.)(\d{2})\2(\d{2}|\d{4})$'
         match = re.match(pattern, dat_str)
         if match:
@@ -255,23 +270,32 @@ class CheckColumnsValues():
                 return ret
             if ret := self.parse_short_date(value, short_date_type):
                 return ret
+        if isinstance(value, float):
+            return datetime_from_excel(value)
 
     def parse_short_date(self, value, short_date_type):
-        part1, part2, ano, _ = self.extract_date_parts(value)
+        
         match short_date_type:
             case DateFormat.DD_MM_YY:
+                part1, part2, ano, _ = self.extract_date_parts(value)
                 ano = self.normalize_year(ano)
                 return date(ano, part2, part1)
             
             case DateFormat.DD_MM_YYYY:
+                part1, part2, ano, _ = self.extract_date_parts(value)
                 return date(ano, part2, part1)
             
             case DateFormat.MM_DD_YY:
+                part1, part2, ano, _ = self.extract_date_parts(value)
                 ano = self.normalize_year(ano)
                 return date(ano, part1, part2)
             
             case DateFormat.MM_DD_YYYY:
+                part1, part2, ano, _ = self.extract_date_parts(value)
                 return date(ano, part1, part2)
+            
+            # case DateFormat.FLOAT:
+            #     return 
 
     def parse_date_in_full(self, value):
         # Verifica e converte data por extenso tipo "Quarta, 05 de Maio de 2010"

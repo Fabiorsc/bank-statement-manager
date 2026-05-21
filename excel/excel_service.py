@@ -1,20 +1,20 @@
 from openpyxl import load_workbook
+from openpyxl.utils.datetime import from_excel
+# from excel.excel_reader import encontrar_cabecalho
 
-from excel.excel_reader import encontrar_cabecalho
+# def iniciar_leitura(caminho_arquivo, colunas):
+#     wb = load_workbook(caminho_arquivo)
+#     sheet = wb.active
+#     linha_idx, linha = encontrar_cabecalho(
+#         sheet,
+#         col_data=colunas["data"],
+#         col_desc=colunas["descricao"],
+#         col_valor=colunas["valor"]
+#     )
 
-def iniciar_leitura(caminho_arquivo, colunas):
-    wb = load_workbook(caminho_arquivo)
-    sheet = wb.active
+#     print("Cabeçalho encontrado na linha:", linha_idx)
 
-    linha_idx, linha = encontrar_cabecalho(
-        sheet,
-        col_data=colunas["data"],
-        col_desc=colunas["descricao"],
-        col_valor=colunas["valor"]
-    )
+#     return linha_idx, linha
 
-    print("Cabeçalho encontrado na linha:", linha_idx)
-
-    return linha_idx, linha
-
-
+def datetime_from_excel(value):
+    return from_excel(value)
