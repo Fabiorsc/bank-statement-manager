@@ -11,6 +11,8 @@ from ui.ui_import import UI_import
 from ui.components.ui_account_item import UI_AccountItem
 from ui.ui_account_manager import UI_account_manager
 from ui.ui_account_layout import UI_account_layout
+from ui.ui_table_selector import UI_table_selector
+
 
 class UI_main(QMainWindow):
     def __init__(self):
@@ -29,9 +31,12 @@ class UI_main(QMainWindow):
         menubar = self.menuBar()
 
         menu_conta = menubar.addMenu("Conta")
-
         acao_inserir = menu_conta.addAction("Inserir Conta")
         acao_inserir.triggered.connect(self.inserir_conta)
+
+        menu_debug = menubar.addMenu("Debug")
+        acao_tabelas = menu_debug.addAction("Tabelas")
+        acao_tabelas.triggered.connect(self.abrir_tabelas)
 
 # ---------- CONTAINER DAS CONTAS ----------
         self.container = QWidget()
@@ -83,6 +88,9 @@ class UI_main(QMainWindow):
         self.janela_contas = UI_account_manager()
         self.janela_contas.show()
 
+    def abrir_tabelas(self):
+        UI_table_selector.load()
+        
 # ---------- LOAD ----------
 
     @classmethod
