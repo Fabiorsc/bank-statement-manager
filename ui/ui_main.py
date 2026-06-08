@@ -12,6 +12,7 @@ from ui.components.ui_account_item import UI_AccountItem
 from ui.ui_account_manager import UI_account_manager
 from ui.ui_account_layout import UI_account_layout
 from ui.ui_table_selector import UI_table_selector
+from ui.ui_account_detail import UI_account_detail
 
 
 class UI_main(QMainWindow):
@@ -50,18 +51,7 @@ class UI_main(QMainWindow):
         self.layout_contas.setContentsMargins(0, 0, 0, 0)
 
 # ---------- CRIA ITENS ----------
-        contas = RepositoryAccount.listar_contas()
-        for id_conta, banco, ag, conta, apelido in contas:
-            item = UI_AccountItem(id_conta, apelido, banco, ag, conta)
-
-            item.btn_importar.clicked.connect(
-                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.importar(id, b, a, c,ap)
-            )
-
-            item.btn_detalhes.clicked.connect(
-                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.detalhes(id, b, a, c,ap)
-            )
-            self.layout_contas.addWidget(item)
+        self.carregar_contas()
 
 # ---------- SCROLL ----------
         scroll = QScrollArea()
@@ -80,18 +70,46 @@ class UI_main(QMainWindow):
         print(f"Importar -> {id} / {banco} / {ag} / {conta}")
 
     def detalhes(self, id, banco, ag, conta, apelido):
-        UI_account_layout.load(id) #, banco, ag, conta, apelido)
+        UI_account_detail.load(id)
+        
+        # TODO: PAssar esta chamada de configuração do arquivo de entrada para a tela de detalhes da conta.
+        # UI_account_layout.load(id) #, banco, ag, conta, apelido)
+        # self.carregar_contas()
 
-        print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
+        # print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
 
     def inserir_conta(self):
         self.janela_contas = UI_account_manager()
         self.janela_contas.show()
+        self.carregar_contas()
 
     def abrir_tabelas(self):
         UI_table_selector.load()
-        
-# ---------- LOAD ----------
+
+# ---------- FUNÇÕES PRIVADAS ----------        
+
+    def carregar_contas(self):
+        self.limpar_layout(self.layout_contas) # Limpa o layout para evitar duplicação de itens ao inserir nova conta.
+        contas = RepositoryAccount.listar_contas()
+        for id_conta, banco, ag, conta, apelido in contas:
+            item = UI_AccountItem(id_conta, apelido, banco, ag, conta)
+
+            item.btn_importar.clicked.connect(
+                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.importar(id, b, a, c,ap)
+            )
+
+            item.btn_detalhes.clicked.connect(
+                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.detalhes(id, b, a, c,ap)
+            )
+            self.layout_contas.addWidget(item)
+
+    def limpar_layout(self, layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+ # ---------- LOAD ----------
 
     @classmethod
     def load(cls):

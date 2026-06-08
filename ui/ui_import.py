@@ -73,25 +73,38 @@ class UI_import(QWidget):
             if self.excel_file:
                 table = excel.load(self.conta_id, self.excel_file)
                 id_import = RepositoryImport.inserir_import(self.conta_id,self.excel_file)
+                
+                # Inicialização de contadores para controle de registros inseridos e duplicados.
+                inserted = 0                
+                duplicated = 0
+
                 for reg in table:
                     data = reg["date"]
                     desc = reg["description"]
                     valor = reg["value"]
                     categ = None
                     obs = None
-                    RepositoryTransaction.inserir_transacao(self.conta_id, id_import, data, desc, valor,categ, obs)
+
+                    # Insere e contabiliza inseridos e duplicados(last_id = None).
+                    last_id = RepositoryTransaction.inserir_transacao(self.conta_id, id_import, data, desc, valor,categ, obs)
+                    if last_id:
+                        inserted += 1
+                    else:
+                        duplicated += 1
             else:
                 QMessageBox.information(self, "Erro", "Selecione um arquivo para ser importado!")
         else:
             QMessageBox.information(self, "Erro", "Não existe configuração de layout para esta conta.")
         
-        
-        # x1 = RepositoryTransaction.listar_transacoes()
-        # x2 = RepositoryImport.listar_imports()
-        x1=[]
-        x2=[]
-        [x1.append(dict(x)) for x in RepositoryTransaction.listar_transacoes()]
-        [x2.append(dict(x)) for x in RepositoryImport.listar_imports()]
+        # Envia uma msg de conclusão e informação de inseridos e duplicados baseado em inserted e diplicated.
+        QMessageBox.information(self, "Conclusão", f"Importação concluída!\nRegistros inseridos: {inserted}\nRegistros duplicados: {duplicated}")
+
+        # # x1 = RepositoryTransaction.listar_transacoes()
+        # # x2 = RepositoryImport.listar_imports()
+        # x1=[]
+        # x2=[]
+        # [x1.append(dict(x)) for x in RepositoryTransaction.listar_transacoes()]
+        # [x2.append(dict(x)) for x in RepositoryImport.listar_imports()]
         stop ="para"
 
     @classmethod

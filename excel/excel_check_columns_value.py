@@ -76,14 +76,20 @@ class CheckColumnsValues():
                 indic = self.list_col_indicador.get(ch).upper()
                 if indic == "D":
                     value = value * -1
+                    row = {
+                        'date': self.list_col_data.get(ch),
+                        'description': self.list_col_descricao.get(ch),
+                        'value': value
+                    }
+                    table.append(row)
                 elif indic == "C":
                     value = value
-                row = {
-                    'date': self.list_col_data.get(ch),
-                    'description': self.list_col_descricao.get(ch),
-                    'value': value
-                }
-                table.append(row)
+                    row = {
+                        'date': self.list_col_data.get(ch),
+                        'description': self.list_col_descricao.get(ch),
+                        'value': value
+                    }
+                    table.append(row)
 
         elif layout_tipo == AccountLayoutType.CRED_DEB.value:
             verificado, self.list_col_credito = self.check_col_valor(ws, self.excel_column_to_number(col_credito), linha_header + 1)
@@ -120,6 +126,7 @@ class CheckColumnsValues():
                 break           
         return (validado, ret)
     
+    
     def check_col_texto(self, ws, col_number, line_number):
         ret = {}
         coluna = self.get_col(ws, col_number, line_number)
@@ -140,6 +147,7 @@ class CheckColumnsValues():
         validado = True
         for ch, value in enumerate(coluna):
             new_money = self.parse_money(value)
+            
             if new_money is not None:
                 ret[ch]=new_money
             else:
@@ -167,14 +175,17 @@ class CheckColumnsValues():
                 part1, part2, ano, _ = self.extract_date_parts(value)
                 if part1 is None:
                     return None
+                
+                if not(part1.isdigit() and part2.isdigit() and ano.isdigit()):
+                    return None
 
-                if part1 > 12 and len(ano) == 2: 
+                if int(part1) > 12 and len(ano) == 2: 
                     return DateFormat.DD_MM_YY
-                elif part1 > 12 and len(ano) == 4:
+                elif int(part1) > 12 and len(ano) == 4:
                     return DateFormat.DD_MM_YYYY
-                elif part2 > 12 and len(ano) == 2:
+                elif int(part2) > 12 and len(ano) == 2:
                     return DateFormat.MM_DD_YY
-                elif part2 > 12 and len(ano) == 4:
+                elif int(part2) > 12 and len(ano) == 4:
                     return DateFormat.MM_DD_YYYY
             # count_nao_float += 1
 
@@ -212,12 +223,7 @@ class CheckColumnsValues():
             
 
     def parse_money(self, value):
-        # if isinstance(value, (int, float)):
-        #     return Decimal(value)
-        
-        # if not isinstance(value, str):
-        #     return None
-
+        # Os tipos aceitos para o valor de moeda são int, float e str. Se for outro tipo, retorna None e gera erro.
         if not isinstance(value, (str,int,float)):
             return None
         
@@ -226,6 +232,9 @@ class CheckColumnsValues():
 
         # Remove espaços e coloca em maiusculo para facilitar tratamento e higienização da variável.
         value = value.strip().upper()
+        value = value.replace(" ","")  # Remove espaços.
+        value = value.replace("(","").replace(")","") # Remove parênteses. Alguns bancos usam parenteses para indicar negativo.
+        value = value.replace("*","")                 # Remove Asterisco. Alguns bancos usam asterisco para indicar valores especiais, como valores bloquados em conta, por exemplo.
 
         if value == "": return Decimal('0.00') # retorno padrão = 2 casas decimais.
 
@@ -279,20 +288,36 @@ class CheckColumnsValues():
             case DateFormat.DD_MM_YY:
                 part1, part2, ano, _ = self.extract_date_parts(value)
                 ano = self.normalize_year(ano)
-                return date(ano, part2, part1)
+                dia = part1
+                mes = part2
+                # return date(ano, part2, part1)
             
             case DateFormat.DD_MM_YYYY:
                 part1, part2, ano, _ = self.extract_date_parts(value)
-                return date(ano, part2, part1)
+                dia = part1
+                mes = part2
+                # return date(ano, part2, part1)
             
             case DateFormat.MM_DD_YY:
                 part1, part2, ano, _ = self.extract_date_parts(value)
                 ano = self.normalize_year(ano)
-                return date(ano, part1, part2)
+                dia = part2
+                mes = part1
+                # return date(ano, part1, part2)
             
             case DateFormat.MM_DD_YYYY:
                 part1, part2, ano, _ = self.extract_date_parts(value)
-                return date(ano, part1, part2)
+                dia = part2
+                mes = part1
+                # return date( ano, part1, part2)
+
+        if dia.isdigit() and mes.isdigit() and ano.isdigit():
+            ano = int(ano)
+            dia = int(dia)
+            mes = int(mes)  
+            return date( ano, mes, dia)
+        else:
+            raise ValueError(f"A data '{value}' não corresponde a um short date em nenhum formato conhecido(dd-mm-yyyy; dd-mm-yy; mm-dd-yyyy; mm-dd-yy).")
             
             # case DateFormat.FLOAT:
             #     return 
