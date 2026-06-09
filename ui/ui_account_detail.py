@@ -7,11 +7,15 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QFrame,
+    QMenu,
 )
 from PySide6.QtCore import Qt
 
 from database.repositories import RepositoryAccount
-from ui.ui_filter_selector import UI_filter_selector
+from ui.ui_filter_date import UI_filter_date
+from ui.ui_filter_text import UI_filter_text
+from ui.ui_filter_money import UI_filter_money
+# from ui.ui_filter_selector import UI_filter_selector
 
 
 class UI_account_detail(QWidget):
@@ -247,10 +251,16 @@ class UI_account_detail(QWidget):
         #
         # ============================================================
 
+        linha_filtros = QHBoxLayout()
+
         self.layout_chips = QHBoxLayout()
         self.layout_chips.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        layout_principal.addLayout(self.layout_chips)
+#        layout_principal.addLayout(self.layout_chips)
+        linha_filtros.addLayout(
+            self.layout_chips,
+            1
+        )
 
         # ============================================================
         # BOTÃO ADICIONAR FILTRO
@@ -273,9 +283,40 @@ class UI_account_detail(QWidget):
 
         self.btn_adicionar_filtro = QPushButton("+ Adicionar Filtro")
 
-        self.btn_adicionar_filtro.clicked.connect(self.adicionar_filtro)
 
-        layout_principal.addWidget(self.btn_adicionar_filtro)
+
+
+        menu_filtro = QMenu(self)
+
+        acao_data = menu_filtro.addAction("Data")
+        acao_descricao = menu_filtro.addAction("Descrição")
+        acao_valor = menu_filtro.addAction("Valor")
+
+        acao_data.triggered.connect(
+            self.adicionar_filtro_data
+        )
+
+        acao_descricao.triggered.connect(
+            self.adicionar_filtro_descricao
+        )
+
+        acao_valor.triggered.connect(
+            self.adicionar_filtro_valor
+        )
+
+        self.btn_adicionar_filtro.setMenu(menu_filtro)
+
+
+
+        # self.btn_adicionar_filtro.clicked.connect(self.adicionar_filtro)
+
+#        layout_principal.addWidget(self.btn_adicionar_filtro)
+        linha_filtros.addWidget(
+            self.btn_adicionar_filtro
+        )
+        layout_principal.addLayout(
+            linha_filtros
+        )
 
         # ============================================================
         # SEPARADOR
@@ -391,9 +432,19 @@ class UI_account_detail(QWidget):
     # ================================================================
     # AÇÔES
     # ================================================================
-    def adicionar_filtro(self):
-        UI_filter_selector.load()
+    # def adicionar_filtro(self):
+    #     UI_filter_selector.load()
 
+    def adicionar_filtro_data(self):
+        UI_filter_date.load()
+
+
+    def adicionar_filtro_descricao(self):
+        UI_filter_text.load()
+
+
+    def adicionar_filtro_valor(self):
+        UI_filter_money.load()
 
     # ================================================================
     # LOAD

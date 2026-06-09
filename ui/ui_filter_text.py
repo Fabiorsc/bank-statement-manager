@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
 )
 
-from domain.filters.text_filter import TextFilter
+from domain.filters.filter_text import TextFilter
 
 
 class UI_filter_text(QWidget):

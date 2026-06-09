@@ -1,4 +1,4 @@
-from domain.filters.base_filter import BaseFilter
+from domain.filters.filter_base import BaseFilter
 
 
 class TextFilter(BaseFilter):

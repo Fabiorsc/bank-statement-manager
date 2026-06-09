@@ -1,64 +1,105 @@
-from ui.ui_filter_date import UI_filter_date
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QPushButton,
-)
+# from ui.ui_filter_date import UI_filter_date
+# from PySide6.QtWidgets import (
+#     QHBoxLayout,
+#     QWidget,
+#     QVBoxLayout,
+#     QPushButton,
+# )
 
 
-class UI_filter_selector(QWidget):
+# class UI_filter_selector(QWidget):
 
-    def __init__(self):
-        super().__init__()
+#     def __init__(self):
+#         super().__init__()
 
-        self.setWindowTitle("Adicionar Filtro")
+#         self.setWindowTitle("Adicionar Filtro")
 
-        layout = QVBoxLayout(self)
+#         layout = QVBoxLayout(self)
 
-        self.btn_data = QPushButton("DATA")
-        self.btn_descricao = QPushButton("DESCRIÇÃO")
-        self.btn_valor = QPushButton("VALOR")
+#         self.btn_data = QPushButton("DATA")
+#         self.btn_descricao = QPushButton("DESCRIÇÃO")
+#         self.btn_valor = QPushButton("VALOR")
 
-        layout.addWidget(self.btn_data)
-        layout.addWidget(self.btn_descricao)
-        layout.addWidget(self.btn_valor)
+#         # chips
+#         self.layout_chips = QHBoxLayout()
+#         layout.addLayout(self.layout_chips)
 
-        self.btn_data.clicked.connect(self.abrir_data)
-        self.btn_descricao.clicked.connect(self.abrir_descricao)
-        self.btn_valor.clicked.connect(self.abrir_valor)
+#         layout.addWidget(self.btn_data)
+#         layout.addWidget(self.btn_descricao)
+#         layout.addWidget(self.btn_valor)
 
-    # ----------------------------------------------------
-    # AÇÕES
-    # ----------------------------------------------------
+#         self.btn_data.clicked.connect(self.abrir_data)
+#         self.btn_descricao.clicked.connect(self.abrir_descricao)
+#         self.btn_valor.clicked.connect(self.abrir_valor)
 
-    def abrir_data(self):
+#     # ----------------------------------------------------
+#     # AÇÕES
+#     # ----------------------------------------------------
 
-        # FUTURO:
-        # abrir UI_filter_date
-        UI_filter_date.load()
+#     def abrir_data(self):
 
-        print("Abrir filtro DATA")
+#         # FUTURO:
+#         # abrir UI_filter_date
+#         UI_filter_date.load()
 
-    def abrir_descricao(self):
+#         print("Abrir filtro DATA")
 
-        # FUTURO:
-        # abrir UI_filter_text
+#     def abrir_descricao(self):
 
-        print("Abrir filtro DESCRIÇÃO")
+#         # FUTURO:
+#         # abrir UI_filter_text
 
-    def abrir_valor(self):
+#         print("Abrir filtro DESCRIÇÃO")
 
-        # FUTURO:
-        # abrir UI_filter_money
+#     def abrir_valor(self):
 
-        print("Abrir filtro VALOR")
+#         # FUTURO:
+#         # abrir UI_filter_money
 
-    # ----------------------------------------------------
-    # LOAD
-    # ----------------------------------------------------
+#         print("Abrir filtro VALOR")
 
-    @classmethod
-    def load(cls):
-        cls._janela = cls()
-        cls._janela.resize(300, 200)
-        cls._janela.show()
+
+
+
+
+
+
+#     def abrir_data(self):
+#         self.adicionar_chip("DATA")
+#         print("Abrir filtro DATA")
+
+#     def abrir_descricao(self):
+#         self.adicionar_chip("DESCRIÇÃO")
+#         print("Abrir filtro DESCRIÇÃO")
+
+#     def abrir_valor(self):
+#         self.adicionar_chip("VALOR")
+#         print("Abrir filtro VALOR")
+
+
+
+
+#     def adicionar_chip(self, texto):
+
+#         chip = QPushButton(texto)
+#         chip.setCheckable(False)
+
+#         chip.setStyleSheet("""
+#             QPushButton {
+#                 border: 1px solid gray;
+#                 border-radius: 10px;
+#                 padding: 4px 8px;
+#             }
+#         """)
+
+#         self.layout_chips.addWidget(chip)
+
+#     # ----------------------------------------------------
+#     # LOAD
+#     # ----------------------------------------------------
+
+#     @classmethod
+#     def load(cls):
+#         cls._janela = cls()
+#         cls._janela.resize(300, 200)
+#         cls._janela.show()
