@@ -56,3 +56,4 @@ class UI_table_selector(QMainWindow):
         cls._janela = cls()
         cls._janela.resize(400, 500)
         cls._janela.show()
+        return cls._janela

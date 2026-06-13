@@ -124,4 +124,5 @@ class UI_account_manager(QMainWindow):
         janela = cls()
         janela.resize(900, 500)
         janela.show()
+        return cls._janela
         # app.exec()

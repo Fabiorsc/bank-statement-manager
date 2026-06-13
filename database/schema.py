@@ -25,7 +25,7 @@ def criar_tabelas():
         import_id INTEGER NOT NULL,
         data TEXT NOT NULL,
         descricao TEXT,
-        valor TEXT NOT NULL, 
+        valor INTEGER NOT NULL, 
         categoria TEXT,
         observacao TEXT,
         data_criacao TEXT DEFAULT CURRENT_TIMESTAMP,

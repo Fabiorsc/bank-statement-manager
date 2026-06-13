@@ -113,4 +113,5 @@ class UI_import(QWidget):
         cls._janela = cls( id_conta, apelido, banco, agencia, conta)
         cls._janela.resize(600, 150)
         cls._janela.show()
+        return cls._janela
         # app.exec()

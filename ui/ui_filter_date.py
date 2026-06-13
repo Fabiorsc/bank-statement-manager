@@ -1,7 +1,6 @@
 from datetime import date
 import calendar
-
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, Signal
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -19,6 +18,7 @@ from domain.filters.filter_date import DateFilter
 
 
 class UI_filter_date(QWidget):
+    filter_created = Signal(object)
 
     def __init__(self):
         super().__init__()
@@ -276,8 +276,8 @@ class UI_filter_date(QWidget):
         # self.filter_created.emit(filtro)
         # ========================================================
 
-        print(filtro.chip_text)
-
+        # print(filtro.chip_text)
+        self.filter_created.emit(filtro)
         self.close()
 
     # ============================================================
@@ -286,9 +286,7 @@ class UI_filter_date(QWidget):
 
     @classmethod
     def load(cls):
-
         cls._janela = cls()
-
         cls._janela.resize(450, 250)
-
         cls._janela.show()
+        return cls._janela

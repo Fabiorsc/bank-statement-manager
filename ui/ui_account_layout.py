@@ -273,8 +273,8 @@ class UI_account_layout(QWidget):
     # LOAD
     @classmethod
     def load(cls, conta_id):
-
         cls._janela = cls(conta_id)
         cls._janela.resize(500, 350)
         cls._janela.show()
+        return cls._janela
 

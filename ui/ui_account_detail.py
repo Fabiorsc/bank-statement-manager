@@ -16,6 +16,9 @@ from ui.ui_filter_date import UI_filter_date
 from ui.ui_filter_text import UI_filter_text
 from ui.ui_filter_money import UI_filter_money
 # from ui.ui_filter_selector import UI_filter_selector
+from ui.ui_filter_chip import UI_filter_chip
+from database.repositories import RepositoryTransaction
+from domain.formatters import format_money
 
 
 class UI_account_detail(QWidget):
@@ -114,6 +117,8 @@ class UI_account_detail(QWidget):
         super().__init__()
 
         self.id_conta = id_conta
+
+        self.filters = []
 
         self.setWindowTitle("Detalhes da Conta")
 
@@ -326,6 +331,14 @@ class UI_account_detail(QWidget):
         linha.setFrameShape(QFrame.Shape.HLine)
         layout_principal.addWidget(linha)
 
+
+        # ============================================================
+        # Label STATUS
+        # ============================================================
+        self.lbl_status = QLabel("Pronto")
+        layout_principal.addWidget(self.lbl_status)
+
+
         # ============================================================
         # TABELA DE RESULTADOS
         #
@@ -436,15 +449,156 @@ class UI_account_detail(QWidget):
     #     UI_filter_selector.load()
 
     def adicionar_filtro_data(self):
-        UI_filter_date.load()
-
+       janela = UI_filter_date.load()
+       janela.filter_created.connect(self.on_filter_created)
 
     def adicionar_filtro_descricao(self):
-        UI_filter_text.load()
-
+        janela = UI_filter_text.load()
+        janela.filter_created.connect(self.on_filter_created)
 
     def adicionar_filtro_valor(self):
-        UI_filter_money.load()
+        janela = UI_filter_money.load()
+        janela.filter_created.connect(self.on_filter_created)
+
+    def on_filter_created(self, filtro):
+        # Adiciona o filtro na lista de filtros.
+        self.filters.append(filtro)
+
+        # Associa o filtro ao chip
+        chip = UI_filter_chip(filtro.chip_text)
+
+        # Cria a conexção entre o X para remoção e a função de remoção.
+        chip.remove_requested.connect(
+            lambda: self.remove_filter(filtro, chip)
+        )
+
+        # Cria o objeto do chip
+        self.layout_chips.addWidget(chip)
+
+        # Atualiza o grid
+        self.refresh_results()
+        
+
+    # Remove chip
+    def remove_filter(self, filtro, chip):
+        self.filters.remove(filtro)
+        chip.deleteLater()
+
+        # Atualiza o grid
+        self.refresh_results()
+
+    # Atualiza Grid confirme chips
+    def refresh_results(self):
+
+        self.lbl_status.setText( "Consultando...")
+        self.repaint()
+
+        # try: # TODO: DESCOMENTAR O TRY!
+
+
+        # =====================================
+        # FUTURO
+        # Chamada RepositoryTransaction
+        # =====================================
+
+        # qtd = len(self.filters)
+
+        self.carregar_resultados()
+
+        self.atualizar_grid()
+
+        self.atualizar_resumo()
+        
+        self.lbl_status.setText(
+            f"Consulta concluída. "
+            # f"{qtd} filtro(s)."
+        )
+
+
+
+        # except Exception as e:
+
+        #     self.lbl_status.setText(
+        #         f"Erro: {e}"
+        #     )
+
+    def carregar_resultados(self):
+        self.resultados = RepositoryTransaction.search(self.id_conta, self.filters)
+        # print (self.resultados)
+        # RepositoryTransaction.pragma_table("transacoes")
+        # RepositoryTransaction.pragma_field("transacoes", "valor")
+
+    def atualizar_grid(self):
+        self.tbl_resultados.setRowCount(0)
+
+        for registro in self.resultados:
+
+            row = self.tbl_resultados.rowCount()
+
+            self.tbl_resultados.insertRow(row)
+
+            self.tbl_resultados.setItem(
+                row,
+                0,
+                QTableWidgetItem(str(registro[3]))
+            )
+
+            self.tbl_resultados.setItem(
+                row,
+                1,
+                QTableWidgetItem(str(registro[4]))
+            )
+
+            self.tbl_resultados.setItem(
+                row,
+                2,
+                QTableWidgetItem(format_money(registro[5]))
+            )
+
+
+    def atualizar_resumo(self):
+        qtd = len(self.resultados)
+        total_entradas = sum(
+            row["valor"]
+            for row in self.resultados
+            if row["valor"] > 0
+        )
+        total_saidas = sum(
+            row["valor"]
+            for row in self.resultados
+            if row["valor"] < 0
+        )
+        saldo = sum(
+            row["valor"]
+            for row in self.resultados
+        )
+
+        self.lbl_qtd_registros.setText(
+            f"Registros: {qtd}"
+        )
+
+        self.lbl_total_entradas.setText(
+            f"Entradas: {format_money(total_entradas)}"
+        )
+
+        self.lbl_total_saidas.setText(
+            f"Saídas: {format_money(total_saidas)}"
+        )
+
+        self.lbl_total_saldo.setText(
+            f"Saldo: {format_money(saldo)}"
+        )
+
+        self.lbl_total_saidas.setStyleSheet(
+            "color: red;"
+        )
+
+        if saldo < 0:
+            self.lbl_total_saldo.setStyleSheet("color: red;")
+        else:
+            self.lbl_total_saldo.setStyleSheet("")
+
+
 
     # ================================================================
     # LOAD
@@ -454,3 +608,4 @@ class UI_account_detail(QWidget):
         cls._janela = cls(id_conta)
         cls._janela.resize(1024, 768)
         cls._janela.show()
+        return cls._janela

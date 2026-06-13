@@ -1,10 +1,10 @@
 
 from PySide6.QtWidgets import (
     QSizePolicy, QWidget, QLabel, QPushButton,
-    QHBoxLayout, QVBoxLayout
+    QHBoxLayout, QVBoxLayout, QMenu
 )
 from PySide6.QtCore import Qt
-
+from PySide6.QtGui import QAction
 
 class UI_AccountItem(QWidget):
     def __init__(self, id_conta, apelido, banco, agencia, conta):
@@ -28,8 +28,17 @@ class UI_AccountItem(QWidget):
         self.label_conta = QLabel(f"Conta: {conta}")
 
         # Botões
-        self.btn_importar = QPushButton("Importar")
-        self.btn_detalhes = QPushButton("Detalhes")
+        # self.btn_importar = QPushButton("Importar")
+        # self.btn_detalhes = QPushButton("Detalhes")
+
+        # Botão Hamburger
+        self.btn_menu = QPushButton("☰")
+        self.btn_menu.clicked.connect(self.show_menu)
+
+        # Menu Hamburger
+        self.action_importar = QAction("Importar Extrato", self)
+        self.action_pesquisa = QAction("Pesquisa", self)
+        self.action_layout = QAction("Configurar Layout", self)
 
     # --- LAYOUT
     def _create_layout(self):
@@ -47,8 +56,9 @@ class UI_AccountItem(QWidget):
 
         # Botões (direita)
         layout_botoes = QVBoxLayout()
-        layout_botoes.addWidget(self.btn_importar)
-        layout_botoes.addWidget(self.btn_detalhes)
+        # layout_botoes.addWidget(self.btn_importar)
+        # layout_botoes.addWidget(self.btn_detalhes)
+        layout_botoes.addWidget(self.btn_menu)
         layout_botoes.addStretch()
 
         # Principal
@@ -74,14 +84,21 @@ class UI_AccountItem(QWidget):
             }
         """)
 
-        self.btn_importar.setStyleSheet("""
-                background-color: #f9f9f9;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                padding: 8px;                             
-        """)
+        # self.btn_importar.setStyleSheet("""
+        #         background-color: #f9f9f9;
+        #         border: 1px solid #ccc;
+        #         border-radius: 6px;
+        #         padding: 8px;                             
+        # """)
 
-        self.btn_detalhes.setStyleSheet("""
+        # self.btn_detalhes.setStyleSheet("""
+        #         background-color: #f9f9f9;
+        #         border: 1px solid #ccc;
+        #         border-radius: 6px;
+        #         padding: 8px;
+        # """)
+
+        self.btn_menu.setStyleSheet("""
                 background-color: #f9f9f9;
                 border: 1px solid #ccc;
                 border-radius: 6px;
@@ -106,7 +123,21 @@ class UI_AccountItem(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.adjustSize()
 
+    def show_menu(self):
+        menu = QMenu(self)
 
+        menu.addAction(self.action_importar)
+        menu.addAction(self.action_pesquisa)
+        menu.addAction(self.action_layout)
+
+        menu.exec(
+            self.btn_menu.mapToGlobal(
+                self.btn_menu.rect().bottomLeft()
+            )
+        )
+
+
+            
 
 # class UI_AccountItem(QWidget):
 #     def __init__(self, id_conta, apelido, banco, agencia, conta):

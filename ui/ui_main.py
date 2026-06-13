@@ -78,6 +78,9 @@ class UI_main(QMainWindow):
 
         # print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
 
+    def layout_config(self, id, banco, ag, conta, apelido):
+         UI_account_layout.load(id) #, banco, ag, conta, apelido)
+
     def inserir_conta(self):
         self.janela_contas = UI_account_manager()
         self.janela_contas.show()
@@ -94,14 +97,20 @@ class UI_main(QMainWindow):
         for id_conta, banco, ag, conta, apelido in contas:
             item = UI_AccountItem(id_conta, apelido, banco, ag, conta)
 
-            item.btn_importar.clicked.connect(
-                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.importar(id, b, a, c,ap)
-            )
+            # item.btn_importar.clicked.connect(
+            #     lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.importar(id, b, a, c,ap)
+            # )
 
-            item.btn_detalhes.clicked.connect(
-                lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.detalhes(id, b, a, c,ap)
-            )
+            # item.btn_detalhes.clicked.connect(
+            #     lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.detalhes(id, b, a, c,ap)
+            # )
+            # self.layout_contas.addWidget(item)
+
+            item.action_importar.triggered.connect(lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.importar(id, b, a, c,ap))
+            item.action_pesquisa.triggered.connect(lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.detalhes(id, b, a, c,ap))
+            item.action_layout.triggered.connect(lambda _, id=id_conta, b=banco, a=ag, c=conta, ap=apelido: self.layout_config(id, b, a, c,ap))
             self.layout_contas.addWidget(item)
+
 
     def limpar_layout(self, layout):
         while layout.count():
@@ -116,3 +125,4 @@ class UI_main(QMainWindow):
         cls._janela = cls()
         cls._janela.resize(800, 400)
         cls._janela.show()
+        return cls._janela

@@ -84,3 +84,4 @@ class UI_table_manager(QMainWindow):
         cls._janela = cls(table_name)
         cls._janela.resize(1000, 600)
         cls._janela.show()
+        return cls._janela

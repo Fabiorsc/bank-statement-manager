@@ -12,11 +12,12 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QHeaderView,
 )
-
+from PySide6.QtCore import Signal
 from domain.filters.filter_text import TextFilter
 
 
 class UI_filter_text(QWidget):
+    filter_created = Signal(object)
     """
     Configuração de filtro textual.
 
@@ -82,7 +83,7 @@ class UI_filter_text(QWidget):
         # ESTADO
         # ==========================================================
 
-        self.values = []
+        self.conditions = []
 
         self.current_operator = TextFilter.OP_CONTAINS
 
@@ -271,7 +272,7 @@ class UI_filter_text(QWidget):
         # NÃO PERMITE ALTERAR SE JÁ EXISTEM ITENS
         # ----------------------------------------------------------
 
-        if self.values:
+        if self.conditions:
 
             operador_atual = (
                 "Contém"
@@ -322,27 +323,19 @@ class UI_filter_text(QWidget):
     # ==============================================================
 
     def adicionar(self):
-
-        texto = (
-            self.cbo_descricao
-            .currentText()
-            .strip()
-        )
+        texto = (self.cbo_descricao.currentText().strip())
 
         if not texto:
             return
 
-        if texto in self.values:
-
-            QMessageBox.information(
-                self,
-                "Aviso",
-                "Valor já adicionado."
-            )
-
+        if any(val_item == texto for _,val_item in self.conditions):
+            QMessageBox.information(self,f"Aviso","Valor '{texto}' já adicionado.")
             return
 
-        self.values.append(texto)
+        operador = (TextFilter.OP_CONTAINS if self.rb_contem.isChecked() else TextFilter.OP_NOT_CONTAINS)
+
+        condicao = (operador, texto)
+        self.conditions.append(condicao)
 
         self.refresh_grid()
 
@@ -363,7 +356,7 @@ class UI_filter_text(QWidget):
         if resposta != QMessageBox.Yes:
             return
 
-        self.values.remove(valor)
+        self.conditions.remove(valor)
 
         self.refresh_grid()
 
@@ -375,23 +368,25 @@ class UI_filter_text(QWidget):
 
         self.grid.setRowCount(0)
 
-        for valor in self.values:
+        for operador, valor in self.conditions:
 
             row = self.grid.rowCount()
 
             self.grid.insertRow(row)
 
+            texto = (f"Contém: {valor}" if operador == TextFilter.OP_CONTAINS else f"Não contém: {valor}")
+
             self.grid.setItem(
                 row,
                 0,
-                QTableWidgetItem(valor)
+                QTableWidgetItem(texto)
             )
 
-            btn_remover = QPushButton("🗑")
+            btn_remover = QPushButton("X")
 
             btn_remover.clicked.connect(
-                lambda _, v=valor:
-                self.remover(v)
+                lambda _, c=(operador,valor):
+                self.remover(c)
             )
 
             self.grid.setCellWidget(
@@ -406,7 +401,7 @@ class UI_filter_text(QWidget):
 
     def confirmar(self):
 
-        if not self.values:
+        if not self.conditions:
 
             QMessageBox.information(
                 self,
@@ -416,10 +411,12 @@ class UI_filter_text(QWidget):
 
             return
 
-        filtro = TextFilter(
-            operator=self.current_operator,
-            values=self.values.copy()
-        )
+        # filtro = TextFilter(
+        #     operator=self.current_operator,
+        #     values=self.conditions.copy()
+        # )
+        
+        filtro = TextFilter(conditions=self.conditions.copy())
 
         # ----------------------------------------------------------
         # FUTURO
@@ -436,8 +433,8 @@ class UI_filter_text(QWidget):
         # self.filter_created.emit(filtro)
         # ----------------------------------------------------------
 
-        print(filtro.chip_text)
-
+        # print(filtro.chip_text)
+        self.filter_created.emit(filtro)
         self.close()
 
     # ==============================================================
@@ -446,14 +443,9 @@ class UI_filter_text(QWidget):
 
     @classmethod
     def load(cls):
-
         cls._janela = cls()
-
-        cls._janela.resize(
-            600,
-            450
-        )
-
+        cls._janela.resize( 600, 450)
         cls._janela.show()
+        return cls._janela
 
         

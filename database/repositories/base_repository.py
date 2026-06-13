@@ -81,3 +81,29 @@ class BaseRepository:
             print(dict(tabela))
 
         conn.close()
+
+    def pragma_table(self, table_name):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(f"PRAGMA table_info({table_name})")
+
+        for row in cursor.fetchall():
+            print(dict(row))
+        conn.close()
+    
+    def pragma_field(self, table_name, field_name):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        sql = f"""
+            SELECT {field_name}, typeof({field_name})
+            FROM {table_name}
+            LIMIT 20;
+            """
+
+        cursor.execute(sql)
+
+        for row in cursor.fetchall():
+            print(dict(row))
+        conn.close()

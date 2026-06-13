@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
-
+from PySide6.QtCore import Signal
+from domain.filters.filter_money import MoneyFilter
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -16,6 +17,7 @@ from PySide6.QtWidgets import (
 
 
 class UI_filter_money(QWidget):
+    filter_created = Signal(object)
     """
     Filtro monetário.
 
@@ -220,58 +222,27 @@ class UI_filter_money(QWidget):
 
     def adicionar(self):
 
-        texto_valor = (
-            self.edt_valor.text()
-            .strip()
-            .replace(",", ".")
-        )
+        texto_valor = (self.edt_valor.text().strip().replace(",", "."))
 
         if not texto_valor:
-
-            QMessageBox.information(
-                self,
-                "Aviso",
-                "Informe um valor."
-            )
-
+            QMessageBox.information(self, "Aviso", "Informe um valor.")
             return
 
         try:
-
             valor = Decimal(texto_valor)
 
         except InvalidOperation:
-
-            QMessageBox.information(
-                self,
-                "Aviso",
-                "Valor inválido."
-            )
-
+            QMessageBox.information(self, "Aviso", "Valor inválido." )
             return
 
-        operador = (
-            self.cbo_operador.currentText()
-        )
-
-        condicao = (
-            operador,
-            valor
-        )
+        operador = (self.cbo_operador.currentText())
+        condicao = (operador, valor)
 
         if condicao in self.conditions:
-
-            QMessageBox.information(
-                self,
-                "Aviso",
-                "Condição já adicionada."
-            )
-
+            QMessageBox.information(self, "Aviso", "Condição já adicionada.")
             return
 
-        self.conditions.append(
-            condicao
-        )
+        self.conditions.append(condicao)
 
         self.refresh_grid()
 
@@ -328,7 +299,7 @@ class UI_filter_money(QWidget):
                 QTableWidgetItem(str(valor))
             )
 
-            btn_remover = QPushButton("🗑")
+            btn_remover = QPushButton("X")
 
             btn_remover.clicked.connect(
                 lambda _, c=(operador, valor):
@@ -347,15 +318,24 @@ class UI_filter_money(QWidget):
 
     def confirmar(self):
 
-        if not self.conditions:
+        # if not self.conditions:
+        #     QMessageBox.information(
+        #         self,
+        #         "Aviso",
+        #         "Adicione ao menos uma condição."
+        #     )
+        #     return
+        # else:
 
-            QMessageBox.information(
-                self,
-                "Aviso",
-                "Adicione ao menos uma condição."
-            )
 
-            return
+        #     filtro = MoneyFilter(
+        #         # mode=MoneyFilter.MODE_RANGE,
+        #         operator=self.cbo_operador().value   #.edt_inicio.date().toPython(),
+        #         data_final=self.edt_valor().value  #.edt_fim.date().toPython(),
+        #     )
+
+
+
 
         # -------------------------------------------------
         # FUTURO
@@ -372,8 +352,14 @@ class UI_filter_money(QWidget):
         # UI_account_detail.
         # -------------------------------------------------
 
-        print(self.conditions)
+        if not self.conditions:
+            QMessageBox.information(self, "Aviso", "Adicione ao menos uma condição.")
+            return
 
+        filtro = MoneyFilter(conditions=self.conditions.copy())
+
+        # print(self.conditions)
+        self.filter_created.emit(filtro)
         self.close()
 
     # =====================================================
@@ -382,12 +368,7 @@ class UI_filter_money(QWidget):
 
     @classmethod
     def load(cls):
-
         cls._janela = cls()
-
-        cls._janela.resize(
-            600,
-            450
-        )
-
+        cls._janela.resize( 600,450)
         cls._janela.show()
+        return cls._janela

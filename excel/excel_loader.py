@@ -45,10 +45,7 @@ class ExcelLoader:
             f"Formato de arquivo não suportado: {extension}"
         )
 
-    def _load_xlsx(
-        self,
-        path: Path
-    ) -> OpenPyxlWorkbook:
+    def _load_xlsx(self, path: Path) -> OpenPyxlWorkbook:
 
         # Carrega workbook padrão openpyxl
         return load_workbook(

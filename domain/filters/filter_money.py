@@ -1,4 +1,4 @@
-from domain.filters.base_filter import BaseFilter
+from domain.filters.filter_base import BaseFilter
 
 
 class MoneyFilter(BaseFilter):
@@ -22,63 +22,39 @@ class MoneyFilter(BaseFilter):
     OP_GREATER_EQUAL = ">="
     OP_LESS = "<"
     OP_LESS_EQUAL = "<="
-    OP_RANGE = "range"
+    # OP_RANGE = "range"
 
-    def __init__(
-        self,
-        operator: str,
-        value=None,
-        min_value=None,
-        max_value=None,
-    ):
-        self.operator = operator
-
-        self.value = value
-
-        self.min_value = min_value
-        self.max_value = max_value
+    def __init__(self, conditions):
+        self.conditions = conditions
 
     @property
     def chip_text(self):
+        partes = []
 
-        if self.operator == self.OP_RANGE:
-            return (
-                f"Valor entre "
-                f"{self.min_value} "
-                f"e "
-                f"{self.max_value}"
-            )
+        for operador, valor in self.conditions:
+            partes.append(f"{operador} {valor}")
 
-        return (
-            f"Valor "
-            f"{self.operator} "
-            f"{self.value}"
-        )
+        return " OR ".join(partes)
+
 
     def match(self, registro):
+        valor_registro = registro.valor
 
-        valor = registro.valor
+        for operador, valor in self.conditions:
 
-        if self.operator == self.OP_EQUAL:
-            return valor == self.value
+            if operador == self.OP_EQUAL and valor_registro == valor:
+                return True
 
-        if self.operator == self.OP_GREATER:
-            return valor > self.value
+            if operador == self.OP_GREATER and valor_registro > valor:
+                return True
 
-        if self.operator == self.OP_GREATER_EQUAL:
-            return valor >= self.value
+            if operador == self.OP_GREATER_EQUAL and valor_registro >= valor:
+                return True
 
-        if self.operator == self.OP_LESS:
-            return valor < self.value
+            if operador == self.OP_LESS and valor_registro < valor:
+                return True
 
-        if self.operator == self.OP_LESS_EQUAL:
-            return valor <= self.value
-
-        if self.operator == self.OP_RANGE:
-            return (
-                self.min_value
-                <= valor
-                <= self.max_value
-            )
+            if operador == self.OP_LESS_EQUAL and valor_registro <= valor:
+                return True
 
         return False

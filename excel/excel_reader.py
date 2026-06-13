@@ -14,7 +14,7 @@ class ExcelReader():
     def __init__(self):
         pass
 
-
+    # Lê a planilha Excel com os dados, identifica os dados conforme pré configuração e elimina linhas inúteis.
     def load(self, conta_id,  excel_path: str):
         # RepositoryAccountLayout._print_table("conta_layout")
         # RepositoryAccountLayout._print_table("contas")
@@ -33,7 +33,7 @@ class ExcelReader():
             # table = [x for x in table if "SALDO" not in x["description"].upper() ]
             
 
-            aux_table = table[:] # faz um acópia da lista para não alterar a lista enquanto pecorre a mesma.
+            aux_table = table[:] # faz uma cópia da lista para não alterar a lista enquanto pecorre a mesma.
             for row in aux_table:
                 i_date = row["date"]
                 i_desc = row["description"]
