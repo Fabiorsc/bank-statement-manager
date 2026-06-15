@@ -6,7 +6,10 @@ import re
 
 from domain.account_layout_type import AccountLayoutType
 from excel.excel_service import datetime_from_excel
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 MESES = {
     "janeiro": 1,
@@ -62,6 +65,7 @@ class CheckColumnsValues():
             verificado, self.list_col_valor = self.check_col_valor(ws, self.excel_column_to_number(col_valor),linha_header + 1)
             for ch in self.list_col_data:
                 row = {
+                    'excel_row': linha_header + 1 + ch,
                     'date': self.list_col_data.get(ch),
                     'description': self.list_col_descricao.get(ch),
                     'value': self.list_col_valor.get(ch)
@@ -77,6 +81,7 @@ class CheckColumnsValues():
                 if indic == "D":
                     value = value * -1
                     row = {
+                        'excel_row': linha_header + 1 + ch,
                         'date': self.list_col_data.get(ch),
                         'description': self.list_col_descricao.get(ch),
                         'value': value
@@ -85,11 +90,14 @@ class CheckColumnsValues():
                 elif indic == "C":
                     value = value
                     row = {
+                        'excel_row': linha_header + 1 + ch,
                         'date': self.list_col_data.get(ch),
                         'description': self.list_col_descricao.get(ch),
                         'value': value
                     }
                     table.append(row)
+                else:
+                    logger.warning(f"Linha {linha_header + 1 + ch} IGNORADA - Índice de Crédito ou Débito '{indic}' inválido ou não reconhecido!")
 
         elif layout_tipo == AccountLayoutType.CRED_DEB.value:
             verificado, self.list_col_credito = self.check_col_valor(ws, self.excel_column_to_number(col_credito), linha_header + 1)
@@ -97,15 +105,24 @@ class CheckColumnsValues():
             for ch in self.list_col_data:
                 if self.list_col_credito.get(ch) != 0:
                     value = self.list_col_credito.get(ch)
+                    row = {
+                        'excel_row': linha_header + 1 + ch,
+                        'date': self.list_col_data.get(ch),
+                        'description': self.list_col_descricao.get(ch),
+                        'value': value
+                    }
+                    table.append(row)
                 elif self.list_col_debito.get(ch) != 0:
                     value = self.list_col_debito.get(ch) * -1
-                row = {
-                    'date': self.list_col_data.get(ch),
-                    'description': self.list_col_descricao.get(ch),
-                    'value': value
-                }
-                table.append(row)
-
+                    row = {
+                        'excel_row': linha_header + 1 + ch,
+                        'date': self.list_col_data.get(ch),
+                        'description': self.list_col_descricao.get(ch),
+                        'value': value
+                    }
+                    table.append(row)
+                else:
+                    logger.warning(f"Linha {linha_header + 1 + ch} IGNORADA - Valor {value} inválido ou não reconhecido para a coluna de valores!")
         return table
 
 

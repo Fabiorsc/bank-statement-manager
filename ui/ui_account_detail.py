@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QFrame,
     QMenu,
+    QMessageBox,
 )
 from PySide6.QtCore import Qt
 
@@ -19,98 +20,21 @@ from ui.ui_filter_money import UI_filter_money
 from ui.ui_filter_chip import UI_filter_chip
 from database.repositories import RepositoryTransaction
 from domain.formatters import format_money
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QHeaderView
+from excel.excel_export import ExcelExport
 
 
 class UI_account_detail(QWidget):
     """
-    *****   ESTOU NO PONTO DE FAZER OS CHIPS DE FILTRO FUNCIONAREM.
-
-
-    Tela de visualização e análise de uma conta.
-
-    OBJETIVOS DA TELA
+    Tela de pesquisa sobre um conta.
 
     1) Exibir os dados principais da conta.
-    2) Exibir um resumo do mês atual.
-    3) Permitir filtros através de chips.
-    4) Exibir os lançamentos encontrados.
-    5) Exibir um resumo dos resultados filtrados.
-
+    2) Permitir filtros através de chips.
+    3) Exibir os lançamentos encontrados.
+    4) Exibir um resumo dos resultados filtrados.
+    5) Exportar resultado para Excel.
     ----------------------------------------------------------------
-
-    REGRAS DEFINIDAS
-
-    CABEÇALHO
-
-    Linha 1:
-        - Apelido (negrito)
-        - Banco
-        - Agência
-        - Conta
-
-    Linha 2:
-        - Entradas do mês atual
-        - Saídas do mês atual
-        - Saldo do mês atual
-        - Mês atual
-
-    IMPORTANTE:
-        Este resumo SEMPRE representa o mês atual.
-        Nunca deve ser afetado pelos filtros.
-
-    ----------------------------------------------------------------
-
-    FILTROS
-
-    Existem apenas 3 tipos de filtros:
-
-        DATA
-        DESCRIÇÃO
-        VALOR
-
-    DATA
-        - Permite apenas 1 chip.
-        - Data única OU período.
-
-    DESCRIÇÃO
-        - Permite vários chips.
-        - Chips usam AND.
-        - Valores internos usam OR.
-
-    Exemplo:
-
-        [Contém: mercado, farmácia]
-        AND
-        [Não contém: extra]
-
-    VALOR
-        - Permite vários chips.
-        - Chips usam AND.
-        - Valores internos usam OR.
-
-    Exemplo:
-
-        [Valor = 100 ou 200]
-        AND
-        [Valor > 50]
-
-    ----------------------------------------------------------------
-
-    ORDENAÇÃO
-
-    Futuramente será implementada no cabeçalho da tabela.
-
-    Comportamento planejado:
-
-        Sem ordenação
-            ↓
-        Crescente
-            ↓
-        Decrescente
-            ↓
-        Sem ordenação
-
-    Semelhante ao Access e Excel.
     """
 
     def __init__(self, id_conta):
@@ -118,7 +42,12 @@ class UI_account_detail(QWidget):
 
         self.id_conta = id_conta
 
+        # define lista de filtros vazia para ser preenchida conforme o usuário for adicionando filtros.
         self.filters = []
+
+        # Define a ordenação default dos dados do grid como data decrescente.
+        self.order_by = "data"
+        self.order_direction = "DESC"
 
         self.setWindowTitle("Detalhes da Conta")
 
@@ -255,6 +184,8 @@ class UI_account_detail(QWidget):
         #     abrir tela de edição já preenchida.
         #
         # ============================================================
+        # LINHA DE FILTROS
+        # ============================================================
 
         linha_filtros = QHBoxLayout()
 
@@ -333,11 +264,20 @@ class UI_account_detail(QWidget):
 
 
         # ============================================================
-        # Label STATUS
+        # LINHA DE STATUS
         # ============================================================
-        self.lbl_status = QLabel("Pronto")
-        layout_principal.addWidget(self.lbl_status)
+        linha_status = QHBoxLayout()
 
+        self.lbl_status = QLabel("Pronto")
+        self.btn_exportar_excel = QPushButton("Exportar Excel")
+
+        self.btn_exportar_excel.clicked.connect(self.exportar_excel)
+
+        linha_status.addWidget(self.lbl_status)
+        linha_status.addStretch()
+        linha_status.addWidget(self.btn_exportar_excel)
+
+        layout_principal.addLayout(linha_status)
 
         # ============================================================
         # TABELA DE RESULTADOS
@@ -353,7 +293,7 @@ class UI_account_detail(QWidget):
         # Similar ao Access.
         #
         # ============================================================
-
+        
         self.tbl_resultados = QTableWidget()
 
         self.tbl_resultados.setColumnCount(3)
@@ -365,6 +305,13 @@ class UI_account_detail(QWidget):
                 "Valor",
             ]
         )
+
+        header = self.tbl_resultados.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.tbl_resultados.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
+        self.update_header_sort_indicator() # Define indicador de ordenação da coluna
 
         layout_principal.addWidget(self.tbl_resultados)
 
@@ -495,20 +442,13 @@ class UI_account_detail(QWidget):
 
         # try: # TODO: DESCOMENTAR O TRY!
 
-
-        # =====================================
-        # FUTURO
-        # Chamada RepositoryTransaction
-        # =====================================
-
-        # qtd = len(self.filters)
-
         self.carregar_resultados()
 
         self.atualizar_grid()
 
         self.atualizar_resumo()
-        
+        self.update_header_sort_indicator()
+
         self.lbl_status.setText(
             f"Consulta concluída. "
             # f"{qtd} filtro(s)."
@@ -523,10 +463,13 @@ class UI_account_detail(QWidget):
         #     )
 
     def carregar_resultados(self):
-        self.resultados = RepositoryTransaction.search(self.id_conta, self.filters)
-        # print (self.resultados)
-        # RepositoryTransaction.pragma_table("transacoes")
-        # RepositoryTransaction.pragma_field("transacoes", "valor")
+        # RepositoryTransaction.search(self.id_conta, self.filters)
+        self.resultados = RepositoryTransaction.search(
+            self.id_conta,
+            self.filters,
+            self.order_by,
+            self.order_direction
+        )
 
     def atualizar_grid(self):
         self.tbl_resultados.setRowCount(0)
@@ -549,12 +492,24 @@ class UI_account_detail(QWidget):
                 QTableWidgetItem(str(registro[4]))
             )
 
+            # -- 
+            item_valor = QTableWidgetItem(format_money(registro[5]))
+
+            if registro[5] < 0:
+                item_valor.setForeground(QColor("red"))
+
             self.tbl_resultados.setItem(
                 row,
                 2,
-                QTableWidgetItem(format_money(registro[5]))
+                item_valor
             )
 
+            # self.tbl_resultados.setItem(
+            #     row,
+            #     2,
+            #     QTableWidgetItem(format_money(registro[5]))
+            # )
+        # self.update_header_sort_indicator()
 
     def atualizar_resumo(self):
         qtd = len(self.resultados)
@@ -598,8 +553,68 @@ class UI_account_detail(QWidget):
         else:
             self.lbl_total_saldo.setStyleSheet("")
 
+    ### EXPORTA DADOS DA PESQUISA PARA EXCEL
+    def exportar_excel(self):
+
+        rows = []
+
+        for registro in self.resultados:
+            rows.append([
+                registro[3],  # data
+                registro[4],  # descrição
+                registro[5],  # valor
+            ])
+
+        file_path = ExcelExport.export(
+            rows=rows,
+            headers=["Data", "Descrição", "Valor"],
+            file_prefix="pesquisa"
+        )
+
+        QMessageBox.information(
+            self,
+            "Exportação",
+            f"Arquivo exportado com sucesso:\n\n{file_path}"
+        )
+
+    def on_header_clicked(self, column):
+
+        columns = {
+            0: "data",
+            1: "descricao",
+            2: "valor",
+        }
+
+        selected_column = columns[column]
+
+        if self.order_by == selected_column:
+            self.order_direction = "ASC" if self.order_direction == "DESC" else "DESC"
+        else:
+            self.order_by = selected_column
+            self.order_direction = "ASC"
+
+        self.update_header_sort_indicator()
+        self.refresh_results()
 
 
+    def update_header_sort_indicator(self):
+
+        headers = ["Data", "Descrição", "Valor"]
+
+        columns = {
+            "data": 0,
+            "descricao": 1,
+            "valor": 2,
+        }
+
+        idx = columns[self.order_by]
+
+        arrow = "▲" if self.order_direction == "ASC" else "▼"
+
+        headers[idx] = f"{headers[idx]} {arrow}"
+
+        self.tbl_resultados.setHorizontalHeaderLabels(headers)
+        
     # ================================================================
     # LOAD
     # ================================================================

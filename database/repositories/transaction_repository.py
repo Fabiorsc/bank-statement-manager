@@ -55,7 +55,7 @@ class TransactionRepository(BaseRepository):
         # fracionados com imprecisão algumas vezes. 
         return int(valor * 100)
 
-    def search(self, id_account, filters):
+    def search(self, id_account, filters, order_by="data", order_direction="DESC"):
         where_parts = ["conta_id = ?"]
 
         params = [id_account]
@@ -83,7 +83,7 @@ class TransactionRepository(BaseRepository):
             SELECT *
             FROM transacoes
             WHERE {" AND ".join(where_parts)}
-            ORDER BY data DESC
+            ORDER BY {order_by} {order_direction}
         """
         return self._fetch_all(sql, tuple(params))
 

@@ -1,5 +1,8 @@
 # from database.connection import get_connection
 from database.repositories.base_repository import BaseRepository
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AccountRepository(BaseRepository):
     def inserir_conta(self, banco, agencia, conta, apelido):
@@ -8,7 +11,12 @@ class AccountRepository(BaseRepository):
         VALUES (?, ?, ?, ?)
         """, (banco, agencia, conta, apelido))
 
+        logger.info(f"Conta criada | id={self.last_id} | banco={banco} | agencia={agencia} | conta={conta}")
+
         return self.last_id
 
     def listar_contas(self):
         return self._fetch_all("SELECT * FROM contas")
+
+
+#TODO: Criar metodo para remoção de contas.

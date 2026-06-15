@@ -71,12 +71,6 @@ class UI_main(QMainWindow):
 
     def detalhes(self, id, banco, ag, conta, apelido):
         UI_account_detail.load(id)
-        
-        # TODO: PAssar esta chamada de configuração do arquivo de entrada para a tela de detalhes da conta.
-        # UI_account_layout.load(id) #, banco, ag, conta, apelido)
-        # self.carregar_contas()
-
-        # print(f"Detalhes -> {id} / {banco} / {ag} / {conta}")
 
     def layout_config(self, id, banco, ag, conta, apelido):
          UI_account_layout.load(id) #, banco, ag, conta, apelido)
