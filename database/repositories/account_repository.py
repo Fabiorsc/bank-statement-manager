@@ -16,7 +16,8 @@ class AccountRepository(BaseRepository):
         return self.last_id
 
     def listar_contas(self):
-        return self._fetch_all("SELECT * FROM contas")
+        return self._fetch_all("SELECT id, banco, agencia, conta, apelido FROM contas")
 
 
 #TODO: Criar metodo para remoção de contas.
+

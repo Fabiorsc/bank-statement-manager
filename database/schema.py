@@ -71,3 +71,19 @@ def criar_tabelas():
 
     conn.commit()
     conn.close()
+
+def remover_tabelas():
+    conn = get_connection()
+
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute("DROP TABLE IF EXISTS transacoes")
+        cursor.execute("DROP TABLE IF EXISTS conta_layout")
+        cursor.execute('DROP TABLE IF EXISTS "import"')
+        cursor.execute("DROP TABLE IF EXISTS contas")
+
+        conn.commit()
+
+    finally:
+        conn.close()

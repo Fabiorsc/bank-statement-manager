@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QApplication
 
 from ui.ui_main import UI_main
 # from openpyxl import load_workbook
-from database.schema import criar_tabelas
+from database.schema import criar_tabelas, remover_tabelas
 from infra.logging_config import configure_logging
 import logging
 
@@ -17,6 +17,7 @@ if __name__ == "__main__":
     configure_logging()
 
     logger.info("Sistema iniciado")
+    # remover_tabelas()
     criar_tabelas()
     app = QApplication(sys.argv)
     UI_main.load()

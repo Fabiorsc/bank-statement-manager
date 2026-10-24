@@ -35,7 +35,7 @@ class UI_main(QMainWindow):
         acao_inserir = menu_conta.addAction("Inserir Conta")
         acao_inserir.triggered.connect(self.inserir_conta)
 
-        menu_debug = menubar.addMenu("Debug")
+        menu_debug = menubar.addMenu("Tabelas")
         acao_tabelas = menu_debug.addAction("Tabelas")
         acao_tabelas.triggered.connect(self.abrir_tabelas)
 
