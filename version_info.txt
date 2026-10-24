@@ -1,0 +1,32 @@
+
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 0, 1),
+    prodvers=(1, 0, 0, 1),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x4,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          '041604B0',
+          [
+            StringStruct('CompanyName', ''),
+            StringStruct('FileDescription', 'Bank Statement Manager'),
+            StringStruct('FileVersion', '1.0.0.1'),
+            StringStruct('InternalName', 'BSM'),
+            StringStruct('OriginalFilename', 'BSM.exe'),
+            StringStruct('ProductName', 'Bank Statement Manager'),
+            StringStruct('ProductVersion', '1.0.0.1')
+          ]
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct('Translation', [1046, 1200])])
+  ]
+)
