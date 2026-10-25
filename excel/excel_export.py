@@ -34,6 +34,11 @@ class ExcelExport:
             max_length = max(len(str(cell.value or "")) for cell in column)
             ws.column_dimensions[get_column_letter(column[0].column)].width = max_length + 2
 
+        for col_idx, header in enumerate(headers, start=1):
+            if header == "Valor":
+                for row_idx in range(2, ws.max_row + 1):
+                    ws.cell(row=row_idx, column=col_idx).number_format = '#,##0.00'
+                    
         wb.save(file_path)
 
         return str(file_path.resolve())

@@ -91,11 +91,13 @@ class TransactionRepository(BaseRepository):
     def filter2sql_date(self, where_parts, params, filtro):
         if filtro.mode == DateFilter.MODE_SINGLE:
             where_parts.append(" data = ?")
-            params. append(f"{str(filtro.data)}")
+            # params.append(f"{str(filtro.data)}")
+            params.append(filtro.data.isoformat())
 
         elif filtro.mode == DateFilter.MODE_RANGE:
             where_parts.append(" data BETWEEN ? AND ?")
-            params.extend([str(filtro.data_inicial), str(filtro.data_final)])
+            # params.extend([str(filtro.data_inicial), str(filtro.data_final)])
+            params.extend([filtro.data_inicial.isoformat(), filtro.data_final.isoformat()])
 
         # return where_parts, params
 

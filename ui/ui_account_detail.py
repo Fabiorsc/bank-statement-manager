@@ -562,7 +562,7 @@ class UI_account_detail(QWidget):
             rows.append([
                 registro[3],  # data
                 registro[4],  # descrição
-                registro[5],  # valor
+                registro[5] / 100,  # valor
             ])
 
         file_path = ExcelExport.export(
