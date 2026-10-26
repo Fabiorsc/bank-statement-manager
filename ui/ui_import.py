@@ -32,6 +32,19 @@ class UI_import(QWidget):
         self.btn_import = QPushButton("Importar Excel")
         self.btn_import.clicked.connect(self.import_excel)
 
+        self.btn_import.setStyleSheet("""
+            QPushButton {
+                background-color: #2563EB;
+                color: white;
+                font-weight: bold;
+                padding: 6px 16px;
+                border: 1px solid #1D4ED8;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+        """)
 
         layout_dados = QHBoxLayout()
         layout_dados.addWidget(self.lbl_apelido)

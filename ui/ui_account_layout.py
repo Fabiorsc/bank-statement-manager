@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QComboBox
 )
+from PySide6.QtCore import Qt
 
 
 class UI_account_layout(QWidget):
@@ -98,8 +99,31 @@ class UI_account_layout(QWidget):
 
         layout_botoes = QHBoxLayout()
         layout_botoes.addStretch()
-        layout_botoes.addWidget(self.btn_cancelar)
         layout_botoes.addWidget(self.btn_salvar)
+        layout_botoes.addWidget(self.btn_cancelar)
+
+        self.btn_salvar.setDefault(True)
+        self.btn_salvar.setAutoDefault(True)
+
+        self.btn_salvar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563EB;
+                color: white;
+                font-weight: bold;
+                padding: 6px 16px;
+                border: 1px solid #1D4ED8;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+        """)
+
+        self.btn_cancelar.setStyleSheet("""
+            QPushButton {
+                padding: 6px 16px;
+            }
+        """)
 
         # LAYOUT PRINCIPAL
         layout_principal = QVBoxLayout()
@@ -278,3 +302,9 @@ class UI_account_layout(QWidget):
         cls._janela.show()
         return cls._janela
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.cancelar()
+            return
+
+        super().keyPressEvent(event)

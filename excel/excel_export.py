@@ -27,6 +27,14 @@ class ExcelExport:
         for row in rows:
             ws.append(row)
 
+        if file_prefix == "pesquisa_por_dia_e_entrada":
+            for cell in ws[ws.max_row]:
+                cell.font = Font(bold=True)
+
+            for row_idx in range(1, ws.max_row + 1):
+                cell = ws.cell(row=row_idx, column=ws.max_column)
+                cell.font = Font(bold=True)
+
         ws.freeze_panes = "A2"
         ws.auto_filter.ref = ws.dimensions
 
@@ -35,10 +43,10 @@ class ExcelExport:
             ws.column_dimensions[get_column_letter(column[0].column)].width = max_length + 2
 
         for col_idx, header in enumerate(headers, start=1):
-            if header == "Valor":
+            if header != "Data" and header != "Descrição":
                 for row_idx in range(2, ws.max_row + 1):
                     ws.cell(row=row_idx, column=col_idx).number_format = '#,##0.00'
-                    
+
         wb.save(file_path)
 
         return str(file_path.resolve())

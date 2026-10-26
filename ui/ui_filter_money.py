@@ -178,43 +178,45 @@ class UI_filter_money(QWidget):
 
         layout_botoes = QHBoxLayout()
 
-        self.btn_confirmar = QPushButton(
-            "Confirmar"
-        )
-
-        self.btn_cancelar = QPushButton(
-            "Cancelar"
-        )
+        self.btn_confirmar = QPushButton("Confirmar" )
+        self.btn_cancelar = QPushButton("Cancelar")
 
         layout_botoes.addStretch()
+        layout_botoes.addWidget(self.btn_confirmar)
+        layout_botoes.addWidget(self.btn_cancelar)
 
-        layout_botoes.addWidget(
-            self.btn_confirmar
-        )
+        self.btn_confirmar.setDefault(True)
+        self.btn_confirmar.setAutoDefault(True)
 
-        layout_botoes.addWidget(
-            self.btn_cancelar
-        )
+        self.btn_confirmar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563EB;
+                color: white;
+                font-weight: bold;
+                padding: 6px 16px;
+                border: 1px solid #1D4ED8;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+        """)
 
-        layout_principal.addLayout(
-            layout_botoes
-        )
+        self.btn_cancelar.setStyleSheet("""
+            QPushButton {
+                padding: 6px 16px;
+            }
+        """)
+
+        layout_principal.addLayout(layout_botoes)
 
         # =====================================================
         # EVENTOS
         # =====================================================
 
-        self.btn_adicionar.clicked.connect(
-            self.adicionar
-        )
-
-        self.btn_confirmar.clicked.connect(
-            self.confirmar
-        )
-
-        self.btn_cancelar.clicked.connect(
-            self.close
-        )
+        self.btn_adicionar.clicked.connect(self.adicionar)
+        self.btn_confirmar.clicked.connect(self.confirmar)
+        self.btn_cancelar.clicked.connect(self.close)
 
     # =====================================================
     # ADICIONAR

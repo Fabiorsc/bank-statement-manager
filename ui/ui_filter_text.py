@@ -214,17 +214,34 @@ class UI_filter_text(QWidget):
 
         layout_botoes.addStretch()
 
-        layout_botoes.addWidget(
-            self.btn_confirmar
-        )
+        layout_botoes.addWidget(self.btn_confirmar)
 
-        layout_botoes.addWidget(
-            self.btn_cancelar
-        )
+        layout_botoes.addWidget(self.btn_cancelar)
 
-        layout_principal.addLayout(
-            layout_botoes
-        )
+        layout_principal.addLayout(layout_botoes)
+
+        self.btn_confirmar.setDefault(True)
+        self.btn_confirmar.setAutoDefault(True)
+
+        self.btn_confirmar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563EB;
+                color: white;
+                font-weight: bold;
+                padding: 6px 16px;
+                border: 1px solid #1D4ED8;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+        """)
+
+        self.btn_cancelar.setStyleSheet("""
+            QPushButton {
+                padding: 6px 16px;
+            }
+        """)
 
         # ==========================================================
         # EVENTOS

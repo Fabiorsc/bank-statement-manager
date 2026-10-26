@@ -54,11 +54,17 @@ class UI_AccountItem(QWidget):
         layout_esquerda.addLayout(layout_info)
         layout_esquerda.addStretch()
 
+        # # Botões (direita)
+        # layout_botoes = QVBoxLayout()
+        # # layout_botoes.addWidget(self.btn_importar)
+        # # layout_botoes.addWidget(self.btn_detalhes)
+        # layout_botoes.addWidget(self.btn_menu)
+        # layout_botoes.addStretch()
+
         # Botões (direita)
         layout_botoes = QVBoxLayout()
-        # layout_botoes.addWidget(self.btn_importar)
-        # layout_botoes.addWidget(self.btn_detalhes)
-        layout_botoes.addWidget(self.btn_menu)
+        layout_botoes.addStretch()
+        layout_botoes.addWidget(self.btn_menu, alignment=Qt.AlignHCenter)
         layout_botoes.addStretch()
 
         # Principal
@@ -84,14 +90,7 @@ class UI_AccountItem(QWidget):
             }
         """)
 
-        # self.btn_importar.setStyleSheet("""
-        #         background-color: #f9f9f9;
-        #         border: 1px solid #ccc;
-        #         border-radius: 6px;
-        #         padding: 8px;                             
-        # """)
-
-        # self.btn_detalhes.setStyleSheet("""
+        # self.btn_menu.setStyleSheet("""
         #         background-color: #f9f9f9;
         #         border: 1px solid #ccc;
         #         border-radius: 6px;
@@ -99,20 +98,20 @@ class UI_AccountItem(QWidget):
         # """)
 
         self.btn_menu.setStyleSheet("""
+            QPushButton {
                 background-color: #f9f9f9;
+                color: #000000;
                 border: 1px solid #ccc;
-                border-radius: 6px;
-                padding: 8px;
+                border-radius: 4px;
+                padding: 6px 16px;
+            }
+            QPushButton:hover {
+                background-color: #eaeaea;
+            }
         """)
 
-        # self.setStyleSheet("""
-        #     QWidget#card {
-        #         background-color: #f9f9f9;
-        #         border: 1px solid #ccc;
-        #         border-radius: 6px;
-        #         padding: 8px;
-        #     }
-        # """)
+
+
 
         self.label_apelido.setStyleSheet(
             "font-weight: bold; font-size: 14px;"

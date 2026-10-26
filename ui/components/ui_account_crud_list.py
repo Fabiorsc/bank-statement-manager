@@ -72,28 +72,31 @@ class UI_AccountCrudList(QWidget):
             }
         """)
 
-        self.btn_editar.setStyleSheet("""
-                background-color: #f9f9f9;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                padding: 8px;                             
-        """)
+        # self.btn_editar.setStyleSheet("""
+        #         background-color: #f9f9f9;
+        #         border: 1px solid #ccc;
+        #         border-radius: 6px;
+        #         padding: 8px;                             
+        # """)
 
-        self.btn_remover.setStyleSheet("""
-                background-color: #f9f9f9;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                padding: 8px;
-        """)
-
-        # self.setStyleSheet("""
-        #     QWidget#card {
+        # self.btn_remover.setStyleSheet("""
         #         background-color: #f9f9f9;
         #         border: 1px solid #ccc;
         #         border-radius: 6px;
         #         padding: 8px;
-        #     }
         # """)
+
+        estilo_botao = """
+            QPushButton {
+                background-color: #f9f9f9;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                padding: 8px;
+            }
+        """
+
+        self.btn_editar.setStyleSheet(estilo_botao)
+        self.btn_remover.setStyleSheet(estilo_botao)
 
         self.lbl_apelido.setStyleSheet(
             "font-weight: bold; font-size: 14px;"

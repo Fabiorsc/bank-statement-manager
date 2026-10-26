@@ -39,6 +39,20 @@ class UI_account_manager(QMainWindow):
         self.btn_criar = QPushButton("Criar")
         self.btn_criar.clicked.connect(self.criar_conta)
 
+        self.btn_criar.setStyleSheet("""
+            QPushButton {
+                background-color: #2563EB;
+                color: white;
+                font-weight: bold;
+                padding: 6px 16px;
+                border: 1px solid #1D4ED8;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1D4ED8;
+            }
+        """)
+
         form_layout.addWidget(self.input_apelido)
         form_layout.addWidget(self.input_banco)
         form_layout.addWidget(self.input_agencia)

@@ -23,6 +23,7 @@ from domain.formatters import format_money
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QHeaderView
 from excel.excel_export import ExcelExport
+from ui.ui_export_options import UI_export_options
 
 
 class UI_account_detail(QWidget):
@@ -271,7 +272,7 @@ class UI_account_detail(QWidget):
         self.lbl_status = QLabel("Pronto")
         self.btn_exportar_excel = QPushButton("Exportar Excel")
 
-        self.btn_exportar_excel.clicked.connect(self.exportar_excel)
+        self.btn_exportar_excel.clicked.connect(self.abrir_opcoes_exportacao) #self.exportar_excel)
 
         linha_status.addWidget(self.lbl_status)
         linha_status.addStretch()
@@ -553,6 +554,104 @@ class UI_account_detail(QWidget):
         else:
             self.lbl_total_saldo.setStyleSheet("")
 
+    def abrir_opcoes_exportacao(self):
+        self.janela_exportacao = UI_export_options()
+        self.janela_exportacao.export_requested.connect(
+            self.exportar_excel_com_opcoes
+        )
+        self.janela_exportacao.exec()
+
+    def exportar_excel_com_opcoes(self, sumarizar_dia, sumarizar_entrada):
+
+        # Apenas exporta o resultado da pesquisa
+        if not sumarizar_dia and not sumarizar_entrada:
+            self.exportar_excel()
+            return
+
+        # Sumarizar por DIA
+        if sumarizar_dia and not sumarizar_entrada:
+            totais = {}
+
+            for registro in self.resultados:
+                data = registro[3]
+                data = data.strftime("%Y-%m-%d") if hasattr(data, "strftime") else str(data).split(" ")[0]
+                totais[data] = totais.get(data, 0) + registro[5]
+                # anterior = totais.get(data, 0)
+                # valor = registro[5]
+                # totais[data] = anterior + valor
+
+            rows = [[data, total / 100] for data, total in totais.items()]
+            headers = ["Data", "Valor"]
+            file_prefix = "pesquisa_por_dia"
+
+        # Sumariza por ENTRADA
+        elif sumarizar_entrada and not sumarizar_dia:
+            totais = {}
+
+            for registro in self.resultados:
+                descricao = registro[4]
+                totais[descricao] = totais.get(descricao, 0) + registro[5]
+
+            rows = [[descricao, total / 100] for descricao, total in totais.items()]
+            headers = ["Descrição", "Valor"]
+            file_prefix = "pesquisa_por_entrada"
+
+        else:
+            datas = {}
+            descricoes = {}
+
+            for registro in self.resultados:
+                data = registro[3]
+                data = data.strftime("%Y-%m-%d") if hasattr(data, "strftime") else str(data).split(" ")[0]
+                descricao = registro[4]
+                valor = registro[5]
+
+                if data not in datas:
+                    datas[data] = {}
+
+                if descricao not in descricoes:
+                    descricoes[descricao] = 0
+
+                datas[data][descricao] = datas[data].get(descricao, 0) + valor
+                descricoes[descricao] += valor
+
+            headers = ["Data", *descricoes.keys(), "Total do dia"]
+            rows = []
+
+            for data, valores in datas.items():
+                total_dia = sum(valores.values())
+                rows.append([
+                    data,
+                    *[
+                        valores[descricao] / 100
+                        if descricao in valores else None
+                        for descricao in descricoes
+                    ],
+                    total_dia / 100
+                ])
+
+            total_geral = sum(descricoes.values())
+
+            rows.append([
+                "Total geral",
+                *[total / 100 for total in descricoes.values()],
+                total_geral / 100
+            ])
+
+            file_prefix = "pesquisa_por_dia_e_entrada"
+
+        file_path = ExcelExport.export(
+            rows=rows,
+            headers=headers,
+            file_prefix=file_prefix
+        )
+
+        QMessageBox.information(
+            self,
+            "Exportação",
+            f"Arquivo exportado com sucesso:\n\n{file_path}"
+        )
+
     ### EXPORTA DADOS DA PESQUISA PARA EXCEL
     def exportar_excel(self):
 
@@ -624,3 +723,4 @@ class UI_account_detail(QWidget):
         cls._janela.resize(1024, 768)
         cls._janela.show()
         return cls._janela
+
